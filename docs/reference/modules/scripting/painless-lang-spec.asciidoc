@@ -1,0 +1,1527 @@
+= Painless Specification
+
+== Section 1: Basics
+
+=== Introduction
+
+The following documentation assumes at least a passing familiarity with Java or a similarly styled programming language.  Painless is very similar to a subset of Java with some additional scripting language features to make scripts easier to write.  Similar, however, does not mean exact, and the documentation will explain differences especially within the casting model.  Many topics discussed as part of this language specification can be supplemented and conceptualized more thoroughly by reading about the same topics in the Java specification.
+
+Painless scripts are parsed and compiled using ANTLR4 and ASM libraries, respectively.  Painless scripts are compiled directly into Java byte code and executed against a standard Java Virtual Machine.  Throughout the documentation, grammar notation from ANTLR4 will be used to aid in describing allowed syntax.  Note that this notation is not necessarily what is used directly in the grammar as that would make it far more reference to describe certain syntax.
+
+=== Comments
+
+Painless supports both single-line and multi-line comments.  Single-line comments are written with two slashes at the beginning, may be placed anywhere on a line, and consume the rest of the line.  Multi-line comments are written with a slash-star at the beginning, may be placed anywhere on a line, and consume characters up to a closing star-slash.  Comments may be written anywhere within a script.
+
+Example(s):
+[source,Java]
+----
+// single-line comment
+
+<code> // single-line comment
+
+/* multi-
+   line
+   comment */
+
+<code> /* multi-line
+          comment */ <code>
+
+<code> /* multi-line comment */ <code>
+----
+
+=== Keywords
+
+Keywords are reserved words used to specify built-in language features.  Keywords may not be used as identifiers or otherwise.  Painless has the following keywords:
+
+[cols="^1,^1,^1,^1,^1"]
+|====
+| if | else | while | do | for
+| in | continue | break | return | new
+| try | catch | throw | this | instanceof
+|====
+
+== Section 2: Constants, Variables, and Types
+
+=== Constants
+
+Constants are values that may be written directly into Painless scripts.
+
+==== Integer Constants
+
+Integer constants can be specified in decimal, octal, or hex using the following grammar:
+
+Grammar:
+[source,ANTLR4]
+----
+INTEGER: '-'? ( '0' | [1-9] [0-9]* ) [lLfFdD]?;
+OCTAL: '-'? '0' [0-7]+ [lL]?;
+HEX: '-'? '0' [xX] [0-9a-fA-F]+ [lL]?;
+----
+
+Note that the single letter designation specifies the primitive type of 'l' for long, 'f' for float, and 'd' for double.  Otherwise, the type will default to an int (with the exception of certain assignments with details on this later) [MARK].
+
+Example(s):
+[source,Java]
+----
+0     // integer constant of 0
+0D    // double constant of 0.0
+1234L // long constant of 1234
+-90F  // float constant of -90.0
+-022  // integer constant of -18 specified in octal
+0xF2A // integer constant of 3882
+----
+
+==== Floating Point Constants
+
+Floating point constants can be specified using the following grammar:
+
+Grammar:
+[source,ANTLR4]
+----
+DECIMAL: '-'? ( '0' | [1-9] [0-9]* ) (DOT [0-9]+)? ( [eE] [+\-]? [0-9]+ )? [fFdD]?;
+----
+
+Note that the single letter designation specified the primitive type of 'f' for float, and 'd' for double.  Otherwise, the type will default to a double.
+
+Example(s):
+[source,Java]
+----
+0.0      // double value of 0.0
+1E6      // double value of 1000000
+0.977777 // double value of 0.97777
+-126.34  // double value of -126.34
+89.9F    // float value of 89.9
+----
+
+==== String Constants
+
+String constants may specified using with either double-quotes or single-quotes.  For double-quoted String constants, the escape sequences backslash-double-quote may be used to specify a double-quote and backslash-backslash may be used to specify a backslash.  For single-quoted String constants, the escape sequences backslash-single-quote may be used to specify a single-quote and backslash-backslash may be used to specify a backslash.
+
+Grammar:
+[source,ANTLR4]
+----
+STRING: ( '"' ( '\\"' | '\\\\' | ~[\\"] )*? '"' ) | ( '\'' ( '\\\'' | '\\\\' | ~[\\'] )*? '\'' );
+----
+
+Example(s):
+[source,Java]
+----
+"standard double-quoted String constant"
+'standard single-quoted String constant'
+"\"String constant using in escaped double-quotes\" with an escaped backslash (\\)"
+'\'String constant using in escaped single-quotes\' with an escaped backslash (\\)'
+"String constant using double-quotes with a non-escaped single-quote (')"
+'String constant using single-quotes with a non-escaped double-quote (")'
+----
+
+==== Character Constants
+
+Character constants cannot be specified directly in Painless.  However using a casting operation [MARK], a String may be converted to a char.
+
+Example(s):
+[source,Java]
+----
+(char)"C"
+(char)'c'
+----
+
+Note that if a String isn't a single character when the above operation is performed an error will occur.
+
+=== Variables
+
+Variables are identifiers used to store values in Painless scripts.
+
+==== Variable Identifiers
+
+Variable identifiers in Painless are specified starting with a letter or underscore followed optionally by a series of letters, digits, and underscores.  Identifiers are considered illegal if they are keywords, types, or do not conform to the following format:
+
+Grammar:
+[source,ANTLR4]
+----
+ID: [_a-zA-Z] [_a-zA-Z-0-9]*;
+----
+
+Example(s):
+[source,Java]
+----
+_
+a
+Z
+id
+list
+list0
+MAP25
+_map25
+----
+
+==== Variable Declaration
+
+Variables in Painless must be declared before use.  The format is type-name identifier-name.  Multiple identifier-names may be specified for a single type-name with a comma as the delimiter.
+
+Grammar:
+[source,ANTLR4]
+----
+type: ID ('[' ']')*;
+declaration : type ID (',' ID)*;
+----
+
+Example(s):
+[source,Java]
+----
+int x;        // declare a variable with type int and id x
+List y;       // declare a variable with type List and id y
+int x, y, z;  // declare variables with type int and ids' x, y, and z
+def[] d;      // declare the variable d with type def[]
+----
+
+Once a type is declared it may be used immediately.
+
+==== Variable Assignment
+
+Variables in Painless may be assigned a value using the equals operator.  The syntax for a variable assignment is to specify the name followed by an equals sign finished with an expression.  Note that the expression assigned to a variable must be of a legal type or an error will occur.
+
+Grammar:
+[source,ANTLR4]
+----
+assignment: ID '=' expression
+----
+
+Primitive types may be assigned to directly using constants.
+
+Example(s):
+[source,Java]
+----
+int i;   // declare an int i
+i = 10;  // set the int i to the int constant 10
+----
+
+Declared variables may be assigned to immediately after a declaration.
+
+Example(s):
+[source,Java]
+----
+int i = 10;     // declare the int variable i and set it the int constant 1
+double j = 2.0; // declare the double variable j and set it to the double constant 2.0
+----
+
+Primitive types may also be assigned to other primitive types.
+
+Example(s):
+[source,Java]
+----
+int i = 10; // declare the int variable i and set it to the int constant 10
+int j = i;  // declare the int variable j and set it to the int variable i
+----
+
+Reference types can be assigned to a new allocation where memory is allocated to the heap using the new operator.
+
+Example(s):
+[source,Java]
+----
+ArrayList l = new ArrayList();  // declare an ArrayList variable l and set it a newly allocated ArrayList
+Map m = new HashMap();          // declare a Map variable m and set it to a newly allocated HashMap
+----
+
+Reference types may also be assigned to other reference types.
+
+Example(s):
+[source,Java]
+----
+List l = new ArrayList(); // declare an List variable l and set it a newly allocated ArrayList
+List k = l;               // declare an List variable k and set it to the value of the List variable l
+List m;                   // declare an List variable m and set it the default value null
+m = k;                    // set the value of the List variable m to the value of the List variable k
+----
+
+Ultimately, any left-hand side variable can be assigned to any right-hand side expression as long as the types match.
+
+=== Data Types
+
+Painless supports both static and dynamics types.  Static types are broken into primitive types and reference types.
+
+==== Primitive Types
+
+Primitive types are types that can be allocated directly onto the stack following the standard Java memory model.  Painless supports the following primitive types specified in the table below.
+
+[options="header",cols="2,8,4,2,2"]
+|====
+| Primitive Type | Description | Range | Default Value | Reference Type
+| byte | an 8-bit, signed, two's complement integer | [-128, 127] | 0 | Byte
+| short | a 16-bit, signed, two's compliment integer | [-32768, 32767] | 0 | Short
+| char | a 16-bit Unicode character | [0, 65535] | 0 or '\u0000' | Character
+| int | a 32-bit, signed, two's compliment integer | [-2^32, 2^32-1] | 0 | Integer
+| long | a 64-bit, signed, two's compliment integer | [-2^64, 2^64-1] | 0 | Long
+| float | a 32-bit, single-precision, IEEE 754 floating point number | range depends on multiple factors | 0.0 | Float
+| double | a 64-bit, double-precision, IEEE 754 floating point number | range depends on multiple factors | 0.0 | Double
+| boolean | values of true/false, though technically an unspecified number of bits, will often be represented as an int | true/false | false | Boolean
+|====
+
+Example(s):
+[source,Java]
+----
+int i = 1;        // declares the variable i as an int and sets it to the constant 1
+double d;         // declares the variable d as a double and sets it to the default value of 0.0
+boolean b = true; // declares the variable b as a boolean and set it to true
+----
+
+Note that primitive types can also behave as their analogous (boxed) reference type meaning any piece of a reference type can be accessed or called through the primitive type.  Any operation performed in this manner will convert the primitive type to its analogous reference type at run-time and then perform the field access or method call without needing to do any other operations.
+
+Example(s):
+[source,Java]
+----
+int i = 1;    // declares the variable i as an int and sets it to the constant 1
+i.toString(); // invokes the Integer method toString on the variable i
+----
+
+==== Reference Types
+
+Reference types are types that may be composed of multiple pieces known as members similar to Java classes, however without access modifiers.  Reference type instances may be allocated using the 'new' operator and will be placed in the heap.  Reference types will have non-static members which are individual to each reference type instance and can only be accessed through an allocated reference type without causing an error.  Reference types may also have static members which are shared between all reference types of the same name and do not require an allocation of the reference type to be accessed.  The following may be a piece of a reference type as shown in the table below.
+
+[options="header",cols="2,12"]
+|====
+| Piece | Description
+| primitive type member | zero to many primitive types, static or non-static, some of which may be read-only
+| reference type member | zero to many reference types, static or non-static, some of which may be read-only
+| method call member | an internal function call that may both return a value and/or have side effects on zero to many of the primitive or reference type members within a reference type, static or non-static
+| constructor call member | an internal function call that is used to return a newly allocated reference type instance and may have side effects on zero to many of the primitive or reference type members within a reference type, non-static only
+|====
+
+The default value for a reference type is 'null' meaning no memory has been allocated for this type.  When 'null' is assigned to a reference type any prior value will be discarded, and garbage collected in accordance with the Java memory model assuming there are no other reference type references pointing to this value in memory.  Reference types support a Java-style inheritance model.  Consider types A and B.  A is considered to be a parent of B, and B a child of A, if B inherits (is able to access as its own) all of A's fields and methods.  B is considered a descendant of type A if there exists a recursive parent-child relationship from B to A with none to many types in between. In this case, B inherits all of A's fields and methods along with all of the fields and methods of the types in between.  Type B is also considered to be a type A in both relationships.
+
+Example(s):
+[source,Java]
+----
+ArrayList al = new ArrayList();  // declares the variable al as an ArrayList and sets it to a newly allocated ArrayList
+List l = new ArrayList();        // declares the variable l as a List and sets it to a newly allocated ArrayList
+                                 // which is allowed since an ArrayList inherits from a List
+Map m;                           // declares the variable m as Map and sets it to the default value of null
+----
+
+Reference types can also have static pieces which means that access to this piece would be called against the type name directly.
+
+Example(s):
+[source,Java]
+----
+Integer.MAX_VALUE      // a static field access
+Long.parseLong("123L") // a static function call
+----
+
+See the reference type API [MARK] for more information about the available reference types in Painless.  See member access [MARK] and method call [MARK] for more information on how to utilize reference type members.
+
+==== The String Type
+
+Strings are a specialized reference type.  Strings are immutable and may be assigned to directly without requiring the 'new' keyword, though it is possible to still allocate them using the 'new' keyword.  Strings are allocated as the standard Java Memory Model dictates.  The default value for a String is 'null.'
+
+Example(s):
+[source,Java]
+----
+String r = "some text";             // declares the String t and sets it to the String "some text"
+String s = new String("some text"); // declares the String s and sets it to the String "some text"
+String t = 'some text';             // declares the String t and sets it to the String 'some text'
+String u;                           // declares the String u and set it to the default value of null
+----
+
+==== The void Type
+
+The void type represents the concept of no type.  In Painless it is exclusively used to declare that a function will have no return value.
+
+==== The def Type
+
+Painless supports a singular dynamic type 'def.'  The def type may represent any of the previously described primitive or reference types without having to declare a specific type at compile-time.  It will mimic the behavior exactly of whatever type it represents at run-time.  Internally, if the def type is representing a primitive type it will be converted to its analogous reference type, though the behavior will still be that of the primitive type including within the casting model.  The default value for the def type is 'null.'  Using the def type may cause a slight performance hit, so if performance is critical, it's better to declare static types.  It's also important to note that type conversion errors using the def type cannot occur until run-time.  A single def type variable can be assigned to different types during the course of a script execution.
+
+Example(s):
+[source,Java]
+----
+def x = 1;               // declares the def variable x and sets it to the constant int 1
+def l = new ArrayList(); // declares the def variable l and sets it a newly allocated ArrayList
+----
+
+==== Array Types
+
+Arrays are a series of elements of a specific type that can be allocated simultaneously.  Painless supports both single and multi-dimensional arrays for all previously described types including def, but with the exception of void.  An array type can be declared as a type followed by a series of empty opening and closing braces, with each set of braces representing a dimension.  Declared arrays have a default value of null and are themselves considered a reference type.  The 'new' operator can be used to allocate an array type instance to the heap.
+
+Grammar:
+[source,ANTLR4]
+----
+declare_array: TYPE ('[' ']')+;
+----
+
+Example(s):
+[source,Java]
+----
+int[] x;                   // declares an int array variable x
+def[][] y = new def[5][5]; // declares a 2-dimensional def array variable y and set it to a newly
+                           // allocated 2-dimensional array where both dimensions have a size of 5
+----
+
+=== Casting
+
+A cast is an operation used to convert one type to another.  An implicit cast is one that occurs automatically, typically during another operation such as assignment, without having to use the casting operator.  An explicit cast is one that uses the casting operator and is typically necessary during an operation such as assignment where the cast cannot be inferred.  The casting operator uses an opening parenthesis, followed by a type, followed by a closing parenthesis, followed by an expression.  Casts not defined in the following sections are considered to be illegal casts and will result in an error, with the exception of the String type to char type cast described previously.
+
+Grammar:
+[source,ANTLR4]
+----
+cast: '(' TYPE ')' expression
+----
+
+==== Numeric Type Casting
+
+The following table illustrates legal casts between numeric types and whether the cast can be implicit or needs to be explicit.  The type in the row is cast to the type in the column.
+
+|====
+| | byte | short | char | int | long | float | double
+| byte | | implicit | implicit | implicit | implicit | implicit | implicit
+| short | explicit | | explicit | implicit | implicit | implicit | implicit
+| char | explicit | explicit | | implicit | implicit | implicit | implicit
+| int | explicit | explicit | explicit | | implicit | implicit | implicit
+| long | explicit | explicit | explicit | explicit | | implicit | implicit
+| float | explicit | explicit | explicit | explicit | explicit | | implicit
+| float | explicit | explicit | explicit | explicit | explicit | explicit |
+|====
+
+Note that explicit casts listed here may result in some of loss of data since a smaller numeric type cannot necessarily accommodate the value from a larger numeric type.  There may also be loss in precision when casting from integer types to floating point types.
+
+Example(s)
+[source,Java]
+----
+int a = 1;            // declare an int variable a and set it to the constant value of 1
+long b = a;           // declare a long variable and set it to the int variable a with an implicit cast to convert from int to long
+short c = (short)b;   // declare a short variable c and set it to the long variable b which is explicitly cast to a short
+byte d = a;           // ERROR: this needs to have an explicit cast to set a byte to an int
+double e = (double)a; // set the double variable e to the int variable a with an explicit cast of int to double, though an explicit cast is not necessary
+----
+
+==== Reference Type Casting
+
+A reference type may be implicitly or explicitly (though not required) cast to another reference type if the type being cast from is a descendant of the type being cast to.  A reference type may be explicitly cast to if the type being cast to is a descendant of the type being cast from.
+
+Note in the following example the ArrayList type is a descendant of the List type while the Map type has no relation to either.
+
+Example(s):
+[source,Java]
+----
+List x;                        // declare the List variable x
+ArrayList y = new ArrayList(); // declare the ArrayList variable y and set it to a newly allocated ArrayList
+x = y;                         // set the List variable x to the ArrayList variable y using an implicit cast
+y = (ArrayList)x;              // set the ArrayList variable y to the List variable x using an explicit cast
+x = (List)y;                   // set the List variable x to an the ArrayList variable y using an explicit cast, though an explicit cast is not necessary
+y = x;                         // ERROR: the ArrayList variable y cannot be set to the List variable x, an explicit cast is required
+Map m = y;                     // ERROR: cannot set the Map variable m to an the ArrayList variable y, no relationship exists
+----
+
+==== def Type Casting
+
+All primitive and reference types can be implicitly cast to def under all operations.  However, the reverse is not necessarily true.  An explicit cast is required at run-time where an explicit cast would normally be required between non-def types, otherwise an error will occur.  The def type technically can be used in a casting operation, but it should not be necessary to ever do so.
+
+Example(s):
+[source,Java]
+----
+def x;          // declare a def variable x and set it to the default value of null
+x = 3;          // set the def variable x to a constant 3 with an implicit cast to convert an int to a def
+x = (def)10.0;  // set the def variable x to a constant 10.0 with an explicit cast to convert a double to a def, though the explicit cast here is not required
+double a = x;   // declare the double variable y and set it to the def variable x which contains a double
+int b = x;      // ERROR: results in a run-time error because an explicit cast would be required to cast from a double to an int
+int c = (int)x; // declare an int variable c and set it to the def variable x which is explicitly cast to a int
+----
+
+==== Boxing and Unboxing
+
+Boxing is where a cast is used to convert a primitive type to it's analogous reference type with unboxing being the reverse.  Boxing in Painless is not user-facing, and the casting operator does not support any notion of boxing or unboxing between analogous primitive and reference types.  If a primitive type needs to be converted to a reference type, the reference type API in Painless supports methods that can do this.  However, under normal circumstances this should not be necessary.  There are two places where implicit boxing and unboxing occurs as a convenience for the user.  The first is with method calls, so a user can continue to pass in primitive types as analogous reference types and vice versa as arguments.  The second is with the def type, so a user doesn't have to do anything special to convert between a primitive type and def or a reference type and def and vice versa.
+
+Example(s):
+[source,Java]
+----
+Integer x = 1;               // ERROR: not a legal implicit cast
+Integer y = (Integer)1;      // ERROR: not a legal explicit cast
+int a = new Integer(1);      // ERROR: not a legal implicit cast
+int b = (int)new Integer(1); // ERROR: not a legal explicit cast
+----
+
+==== Promotion
+
+Promotion is where certain operations require types to be either a minimum numerical type and/or two (or more) types to be equivalent.  Promotion tables can be found within their individual operations described in further detail later.  Once an operation promotes a type or types, the resultant type of the operation will be the promoted type.  Note that at compile-time, types can be promoted to def; however, at run-time, the resultant type will be the promotion of the types the def is representing.
+
+Example(s):
+[source,Java]
+----
+2 + 2.0 // add together the constant in 2 and the constant double 2.0 where the types are promoted to double
+
+def x = 1;  // declare a def variable x and set it to the constant int 1 through an implicit cast
+x + 2.0F    // add together the def variable x and the constant float 2.0,
+            // at compile-time the types will be promoted to def
+            // at run-time the types will be promoted to float
+----
+
+== Section 3: Operators
+
+The following is a table of the available operators in Painless.  Each operator will have further information and examples outside of the table.  Many operators will have a promotion table as described by the documentation on promotion [MARK].
+
+[options="header",cols="6,3,2,4"]
+|====
+|Operator|Symbol(s)|Precedence|Associativity
+|Member Access|.|1|left-to-right
+|Method Call|. ()|1|left-to-right
+|Function Call|()|1|left-to-right
+|Array Initialization|[] {}|1|left-to-right
+|Array Access|[]|1|left-to-right
+|Array Length|.|1|left-to-right
+|List Initialization|[]|1|left-to-right
+|List Access|[]|1|left-to-right
+|Map Initialization|[:]|1|left-to-right
+|Map Access|[]|1|left-to-right
+|Post Increment|++|1|left-to-right
+|Post Decrement|--|1|left-to-right
+|Pre Increment|++|2|right-to-left
+|Pre Decrement|--|2|right-to-left
+|Unary Positive|+|2|right-to-left
+|Unary Negative|-|2|right-to-left
+|Boolean Not|!|2|right-to-left
+|Bitwise Not|~|2|right-to-left
+|Cast|()|3|right-to-left
+|Constructor Call|new ()|3|right-to-left
+|New Array|new|3|right-to-left
+|Multiplication|*|4|left-to-right
+|Division|/|4|left-to-right
+|String Concatenation|+|5|left-to-right
+|Addition|+|5|left-to-right
+|Subtraction|+|5|left-to-right
+|Left Shift|<<|6|left-to-right
+|Right Shift|>>|6|left-to-right
+|Unsigned Right Shift|>>>|6|left-to-right
+|Greater Than|>|7|left-to-right
+|Greater Than Or Equal|>=|7|left-to-right
+|Less Than|<|7|left-to-right
+|Less Than Or Equal|<=|7|left-to-right
+|Instance Of|instanceof|7|left-to-right
+|Equality Equals|==|8|left-to-right
+|====
+|====
+|Name|Symbol|Purpose(s)|
+|Parenthesis|()|Precedence
+|Equals Equals|==|Reference Equality
+|Identity Equals|===|Identity Equality
+|Not Equals|!=|Reference Inequality
+|Identity Not Equals|!==|Identity Inequality
+|Ampersand|&|Bitwise And
+|Carrot|^|Boolean Xor & Bitwise Xor
+|Pipe|\||Bitwise Or
+|And|&&|Boolean And
+|Or|\|\||Boolean Or
+|Conditional|?|Conditional
+|Elvis|?:|Conditional with Null Shortcut
+|Null-Safe|?.|Null-Safe Member Access & Null-Safe Method Call
+|Equals|=|Variable Assignment
+|Compound Assignment|$=|Compound Assignment
+|====
+
+=== Member Access
+
+A member may be accessed within a reference type using the dot '.' operator followed by the id of the member.  For primitive type members and reference type members, the accessed member behaves the same way as the type is represents with one exception; if the reference type is of type def then the member will also be considered to be of type def and resolved as such at run-time.  For method call members, see method calls [MARK].
+
+Example(s):
+[source,Java]
+----
+FeatureTest ft = new FeatureTest(); // declare the FeatureTest variable ft and set it to a newly allocated FeatureTest
+ft.x = 5;                           // access the int member x from ft and set it to the constant int value 5
+ft.y = ft.x;                        // access the int member y from ft and set it to the member x from ft
+int value = ft.x + ft.y;            // declare the variable int value, access the members x and y from ft, add them to together, and set the variable value to the total
+def d = ft;
+----
+
+=== Method Call
+
+A method call is a piece of a code executed against a reference type that may manipulate the members of the reference type and/or arguments passed in and/or return a value.  An argument is a value passed into the method.  A method may be called on a reference type  by first using the '.' operator to access the method and then using the parenthesis '()' operator to invoke the call.  The format starts with the id of the reference type (or the name of the reference type for a static method), followed by a dot, the id of the method, an opening parenthesis, arguments if any, and a closing parenthesis, in that order.  Arguments are a series of zero-to-many expressions delimited by commas.  If the reference type is not of the def type then the argument types for the method can be resolved at compile-time; if appropriate type conversions (casting) cannot be applied an error will occur.  If the reference is of the def type then argument types for the method will all be considered to be the def type; appropriate type conversions (casting) will be resolved at run-time.  Auto-boxing and auto-unboxing will be applied automatically for arguments passed into a method call.  See boxing and unboxing [MARK] for more information on this topic.
+
+Method calls may be overloaded based on arity in Painless.  This means the same method call name may be re-used for different methods as long as the number of arguments differs.  This is differs from Java method overloading where only the types must differ.  This does have an effect on some of the provided reference type methods in the Painless API [MARK].  When there are overloaded methods with the same arity for a reference type in Java a single method must be chosen to be provided in Painless.
+
+Grammar:
+[source,ANTLR4]
+----
+method_call: ID '.' ID '(' (expression (',' expression)*)? ')';
+----
+
+Example(s):
+[source,Java]
+----
+Map m = new HashMap();         // declare the Map variable m and set it a newly allocated HashMap
+x.put(1, 2);                   // call the method put on the variable x to add the key 1 with the value 2 to the Map
+int z = x.get(1);              // declare the int variable z and set it to the return value of the method call get on the variable x
+def d = new ArrayList();       // declare the def variable m and set it a newly allocated ArrayList
+d.add(1);                      // call the method add on the variable d and add the constant int of 1 to the ArrayList;
+                               // note that the argument type is considered to be of type since the reference type is also def
+int i = Integer.parseInt('2'); // declare the int variable i and set it to the value returned by the static method parseInt
+----
+
+Note that the standard Painless API uses the following methods to describe the Map reference type:
+
+[source,Java]
+----
+put(def, def)
+get(def)
+----
+
+In the previous example, the constants 1 and 2 are converted from the int type to the def type implicitly.  Now, assume the Painless API hypothetically described the Map methods as the following:
+
+[source,Java]
+----
+put(Integer, Integer)
+get(Integer)
+----
+
+The constants 1 and 2 in this case would be boxed from the primitive type int to the reference type Integer implicitly.
+
+=== Function Call
+
+User-defined function calls can be made in Painless using the parenthesis operator.  See Function Calls [MARK] for more information.
+
+=== Array Initialization
+
+An array can be created and initialized using both the braces operator and the brackets operator.  The format begins with a new operator, followed by a type, opening and closing braces, an opening bracket, an arbitrary number of expressions delimited with commas (except the last), and ends with a closing bracket.
+
+Grammar:
+[source,ANTLR4]
+----
+array_initialization: 'new' TYPE '[' ']' '{' expression (',' expression) '}'
+                    | 'new' TYPE '[' ']' '{' '}';
+----
+
+Each expression used as part of the initialization will be converted to the specified type of the array for insertion into the array.  If any of the expressions do not match the specified type of the array an error will occur.  The number of expressions specified will be the permanent length of the array.  The order of the expressions will be maintained.
+
+Examples:
+[source,Java]
+----
+List[] l = new List[] {};            // declares the List array variable l and sets it to an empty array of length 0
+int[] x = new int[] {1, 2, 3};       // declares the int array variable x and sets it an int array with values 1, 2, 3 of length 3
+
+int i = 1;
+long l = 2L;
+float f = 3.0F;
+double d = 4.0;
+String s = "5";
+def[] da = new def[] [i, l, f*d, s]; // declares the def array da and sets it to a def array with values i, l, f*d, and s of length 4
+----
+
+=== Array Access
+
+Elements in an array can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  The range of elements within an array that can be accessed is [0, size) where size is the originally allocated size of the array.  Elements may also be accessed from the last element in an array using a negative numeric value from [-size, -1].  The expression used to determine which element is accessed must be able to be implicitly cast to an int.  An error will occur if the expression is outside of the legal range or is not of type int.
+
+Grammar:
+[source,ANTLR4]
+----
+brace_access: '[' expression ']'
+----
+
+Example(s):
+[source,Java]
+----
+int[] x = new int[2]; // declares an int array variable x and sets it to a newly allocated array with a size of 2
+x[0] = 2;             // sets the 0th element of the variable x to the constant int 2
+x[1] = 5;             // sets the 1st element of the variable x to the constant int 2
+int y = x[0] + x[1];  // declares the int variable y and sets it to the sum of the first two elements of the variable x
+int z = 1;            // declares the int variable z and sets it to the constant int 1
+return x[z];          // accesses the 1st element of the variable x using the variable z as an expression and returns the value
+
+def d = new int[2];   // declares an def variable d and sets it to a newly allocated array with a size of 2
+d[0] = 2;             // sets the 0th element of the variable d to the constant int 2
+d[1] = 5;             // sets the 1st element of the variable d to the constant int 2
+def y = d[0] + d[1];  // declares the def variable y and sets it to the sum of the first two elements of the variable d
+def z = 1;            // declares the def variable z and sets it to the constant int 1
+return d[z];          // accesses the 1st element of the variable d using the variable z as an expression and returns the value
+----
+
+Note in the first example above all types can be resolved at compile-time, while in the second example all types must wait to be resolved until run-time.
+
+=== Array Length
+
+Array types contain a special member known as 'length' that is a read-only value representing the size of the array.  This member can be accessed from an array using the dot operator.
+
+Example(s):
+[source,Java]
+----
+int[] x = new int[10]; // declares an int array variable x and sets it to a newly allocated array with a size of 10
+int l = x.length;      // declares and int variable l and sets it to the field length of variable x
+----
+
+=== List Initialization
+
+A List can be created and initialized using the braces operator.  The format begins with a brace, followed by an arbitrary number of expressions delimited with commas (except the last), and ends with a closing brace.  If the number of expressions is zero, a new empty List will be created.
+
+Grammar:
+[source,ANTLR4]
+----
+list_initialization: '[' expression (',' expression)* ']'
+                   | '[' ']';
+----
+
+Each expression used as part of the initialization will be converted to a def type for insertion into the list.  The order of the expressions will be maintained.
+
+Example(s):
+[source,Java]
+----
+List empty = [];          // declares the List variable empty and sets it to a newly initialized empty List
+List l0 = [1, 2, 3];      // declares the List variable l0 and sets it to a newly initialized List with the values 1, 2, and 3
+
+int i = 1;
+long l = 2L;
+float f = 3.0F;
+double d = 4.0;
+String s = "5";
+List l1 = [i, l, f*d, s]; // declares the List variable l1 and sets it to a newly initialized List with the values of i, l, and f*d and s
+----
+
+=== List Access
+
+Elements in a List can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing elements in a List is equivalent to invoking a List's set method.  Accessing elements in a List is equivalent to invoking a List's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  The range of elements within a List that can be accessed is [0, size) where size is the number of elements currently in the List.  Elements may also be accessed from the last element in a List using a negative numeric value from [-size, -1].  The expression used to determine which element is accessed must be able to be implicitly cast to an int.  An error will occur if the expression is outside of the legal range or is not of type int.
+
+Grammar:
+[source,ANTLR4]
+----
+list_access: '[' expression ']'
+----
+
+Example(s):
+[source,Java]
+----
+List x = new ArrayList(); // declares a List variable x and sets it to a newly allocated ArrayList
+x.add(1);                 // invokes the add method on the variable x and adds the constant int 1 to the List
+x.add(2);                 // invokes the add method on the variable x and adds the constant int 2 to the List
+x.add(3);                 // invokes the add method on the variable x and adds the constant int 3 to the List
+x[0] = 2;                 // sets the 0th element of the variable x to the constant int 2
+x[1] = 5;                 // sets the 1st element of the variable x to the constant int 2
+int y = x[0] + x[1];      // declares the int variable y and sets it to the sum of the first two elements of the variable x
+int z = 1;                // declares the int variable z and sets it to the constant int 1
+return x[z];              // accesses the 1st element of the variable x using the variable z as an expression and returns the value
+
+def d = new ArrayList(); // declares a def variable d and sets it to a newly allocated ArrayList
+d.add(1);                // invokes the add method on the variable d and adds the constant int 1 to the List
+d.add(2);                // invokes the add method on the variable d and adds the constant int 2 to the List
+d.add(3);                // invokes the add method on the variable d and adds the constant int 3 to the List
+d[0] = 2;                // sets the 0th element of the variable d to the constant int 2
+d[1] = 5;                // sets the 1st element of the variable d to the constant int 2
+def y = d[0] + d[1];     // declares the def variable y and sets it to the sum of the first two elements of the variable d
+def z = 1;               // declares the def variable z and sets it to the constant int 1
+return d[z];             // accesses the 1st element of the variable d using the variable z as an expression and returns the value
+----
+
+Note in the first example above all types can be resolved at compile-time, while in the second example all types must wait to be resolved until run-time.
+
+=== Map Initialization
+
+A Map can be created and initialized using the braces operator.  The format begins with a brace, followed by an arbitrary number of key-value pairs delimited with commas (except the last), and ends with a closing brace.  Each key-value pair is a set of two expressions separate by a colon.  If there is only a single colon with no expressions, a new empty Map will be created.
+
+Grammar:
+[source,ANTLR4]
+----
+map_initialization: '[' key_pair (',' key_pair)* ']'
+                  | '[' ':' ']';
+key_pair: expression ':' expression
+----
+
+Each expression used as part of the initialization will be converted to a def type for insertion into the map.
+
+Example(s):
+[source,Java]
+----
+Map empty = [:];            // declares the Map variable empty and sets it to a newly initialized empty Map
+Map m0 = [1:2, 3:4, 5:6];   // declares the Map variable m0 and sets it to a newly initialized Map with the keys 1, 3, 5 and values 2, 4, 6, respectively
+
+byte b = 0;
+int i = 1;
+long l = 2L;
+float f = 3.0F;
+double d = 4.0;
+String s = "5";
+Map m1 = [b:i, l:f*d, d:s]; // declares the Map variable m1 and sets it to a newly initialized Map with the keys b, l, d and values i, f*d, s, respectively
+----
+
+=== Map Access
+
+Elements in a Map can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing values in a Map is equivalent to invoking a Map's put method.  Accessing values in a Map is equivalent to invoking a Map's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  Any element from a Map can be stored/accessed where the expression is the key.  If a key has no corresponding value when accessing a Map then the value will be null.
+
+Grammar:
+[source,ANTLR4]
+----
+map_access: '[' expression ']'
+----
+
+Example(s):
+[source,Java]
+----
+Map x = new HashMap();             // declares a Map variable x and sets it to a newly allocated HashMap
+x['value2'] = 2;                   // puts the value of the key constant String value2 of the variable x to the constant int 2
+x['value5'] = 5;                   // puts the value of the key constant String value5 of the variable x to the constant int 5
+int y = x['value2'] + x['value5']; // declares the int variable y and sets it to the sum of the two values of the variable x
+String z = 'value5';               // declares the String variable z and sets it to the constant String value5
+return x[z];                       // accesses the value for the key value5 of the variable x using the variable z as an expression and returns the value
+
+def d = new HashMap();             // declares a def variable d and sets it to a newly allocated HashMap
+d['value2'] = 2;                   // puts the value of the key constant String value2 of the variable d to the constant int 2
+d['value5'] = 5;                   // puts the value of the key constant String value5 of the variable d to the constant int 5
+int y = d['value2'] + d['value5']; // declares the int variable y and sets it to the sum of the two values of the variable d
+String z = 'value5';               // declares the String variable z and sets it to the constant String value5
+return d[z];                       // accesses the value for the key value5 of the variable x using the variable z as an expression and returns the value
+----
+
+Note in the first example above all types can be resolved at compile-time, while in the second example all types must wait to be resolved until run-time.
+
+=== Post Increment
+
+A variable/member representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a plus and ends with a plus.
+
+Grammar:
+[source,ANTLR4]
+----
+post_increment: ( variable | member ) '++'
+----
+
+A numeric promotion may occur during a post-increment followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+
+Promotion Table:
+
+|====
+|from|to|downcast
+|byte|int|byte
+|short|int|short
+|char|int|char
+|int|int|
+|long|long|
+|float|float|
+|double|double|
+|def|def|
+|====
+
+Examples(s):
+[source,Java]
+----
+int i = 0;    // declares the int variable i and sets it to the constant 0
+i++;          // increments the int variable i by 1 to a value of 1
+long l = 1;   // declares the long variable l and set it the constant 1
+long k;       // declares the long variable k
+k = l++;      // sets the long variable k to the value of l (1), and then increments the long variable l by 1 to a value of 2
+----
+
+=== Post Decrement
+
+A variable or member representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a minus and ends with a minus.
+
+Grammar:
+[source,ANTLR4]
+----
+post_increment: ( variable | member ) '--'
+----
+
+A numeric promotion may occur during a post-decrement followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+
+Promotion Table:
+
+|====
+|from|to|downcast
+|byte|int|byte
+|short|int|short
+|char|int|char
+|int|int|
+|long|long|
+|float|float|
+|double|double|
+|def|def|
+|====
+
+Examples(s):
+[source,Java]
+----
+short i = 0;    // declares the short variable i and sets it to the constant short 0
+i--;            // decrements the short variable i by 1 to a value of -1 (promoted to int and downcast to short)
+float l = 1.0f; // declares the float variable l and sets it the constant float 1.0f
+float k;        // declares the float variable k
+k = l--;        // sets the float variable k to the value of l (1.0f), and then decrements the float variable l by 1.0 to a value of 0.0
+----
+
+=== Pre Increment
+
+A variable or member representing a numerical value can be increased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a plus followed by a plus and ends with a variable name.
+
+Grammar:
+[source,ANTLR4]
+----
+pre_increment: '++' ( variable | member )
+----
+
+A numeric promotion may occur during a pre-increment followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+
+Promotion Table:
+
+|====
+|from|to|downcast
+|byte|int|byte
+|short|int|short
+|char|int|char
+|int|int|
+|long|long|
+|float|float|
+|double|double|
+|def|def|
+|====
+
+Examples(s):
+[source,Java]
+----
+int i = 0;    // declares the int variable i and sets it to the constant int 0
+++i;          // increments the int variable i by 1 to a value of 1
+long l = 1;   // declares the long variable l and sets it to the constant long 1
+long k;       // declares the long variable k
+k = ++l;      // increments the long variable l by 1 to a value of 2, and then sets the long variable k to the value of l (2)
+----
+
+=== Pre Decrement
+
+A variable or member representing a numerical value can be decreased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a minus followed by a minus and ends with a variable name.
+
+Grammar:
+[source,ANTLR4]
+----
+pre_decrement: '--' ( variable | member )
+----
+
+A numeric promotion may occur during a pre-decrement followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+
+Promotion Table:
+|====
+|from|to|downcast
+|byte|int|byte
+|short|int|short
+|char|int|char
+|int|int|
+|long|long|
+|float|float|
+|double|double|
+|def|def|
+|====
+
+Examples(s):
+[source,Java]
+----
+byte i = 1;      // declares the byte variable i and sets it to the constant int 1
+--i;             // decrements the byte variable i by 1 to a value of 0 (promoted to int and downcast to byte)
+double l = 1.0;  // declares the double variable l and sets it to the constant double 1.0
+double k;        // declares the double variable k
+k = --l;         // decrements the double variable l by 1.0 to a value of 0.0, and then sets the double variable k to the value of l (0.0)
+----
+
+=== Unary Positive
+
+Unary positive gives the identity of a numerical value using the plus operator.  In practice this is usually a no-op, but will cause some numeric types to be promoted.  Format starts with a plus operator followed by a numerical expression.
+
+Grammar:
+[source,ANTLR4]
+----
+unary_positive: '+' expression
+----
+
+A numeric promotion may occur during a unary positive operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+|from|to
+|byte|int
+|short|int
+|char|int
+|int|int
+|long|long
+|float|float
+|double|double
+|def|def
+|====
+
+Examples:
+[source,Java]
+----
+int x = +1;  // declares the int variable x and sets it to positive 1
+long y = +x; // declares the long variable y and sets it to positive x (promoted to long from int)
+def z = +y;  // declares the def variable z and sets it to positive y
+byte z = +2; //ERROR: cannot implicitly downcast an int to a byte
+----
+
+=== Unary Negative
+
+Unary negative negates a numeric value using the minus operator.  Format starts with a minus followed by a numerical expression.
+
+Grammar:
+[source,ANTLR4]
+----
+unary_negative: '-' expression
+----
+
+A numeric promotion may occur during a unary negative operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+|from|to
+|byte|int
+|short|int
+|char|int
+|int|int
+|long|long
+|float|float
+|double|double
+|def|def
+|====
+
+Examples:
+[source,Java]
+----
+int x = -1;  // declares the int variable x and sets it to negative 1
+long y = -x; // declares the long variable y and sets it to negative x (promoted to long from int)
+def z = -y;  // declares the def variable z and sets it to negative y
+byte z = -2; //ERROR: cannot implicitly downcast an int to a byte
+----
+
+=== Boolean Not
+
+Boolean not will flip a boolean value from true to false or false to true using the bang operator.  The format is a bang operator followed by an expression.
+
+Grammar:
+[source,ANTLR4]
+----
+boolean_not: '!' expression;
+----
+
+Note that def types will be assumed to be of the boolean type.  Any def type evaluated at run-time that does not represent a boolean will result in an error.  Non-boolean expressions will result in an error.
+
+Examples:
+[source,Java]
+----
+boolean x = !false; // declares the boolean variable x and sets it to the the opposite of the false value
+boolean y = !x;     // declares the boolean variable y and sets it to the opposite of the boolean variable x
+def z = !y;         // declares the def variable z and sets it to the opposite of the boolean variable y
+----
+
+=== Bitwise Not
+
+Bitwise not will flip each bit of an integer value using the tilde operator.  The format is the tilde operator followed by an expression.
+
+Grammar:
+[source,ANTLR4]
+----
+bitwise_not: '~' expression;
+----
+
+A numeric promotion may occur during unary positive operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-integer expressions will result in an error.
+
+Promotion Table:
+|====
+|from|to
+|byte|int
+|short|int
+|char|int
+|int|int
+|long|long
+|def|def
+|====
+
+Examples:
+[source,Java]
+----
+byte x = 1;  // declares the byte variable x and sets it to a constant int 1
+int y = ~x;  // declares the int variable y and sets it to the negation of x
+long z = ~y; // declares the long variable z and sets it the negation of y
+def d = ~z;  // declares the def variable d and sets it the negation of z
+def e;       // declares the def variable e
+e = ~d;      // sets e the negation of d
+----
+
+=== Cast
+
+The cast operator can be used to explicitly convert one type to another.  See casting [MARK] for more information.
+
+=== Constructor Call
+
+A constructor call is a special type of method call [MARK] used to allocate a reference type instance using the new operator.  The format is the new operator followed by a type, an opening parenthesis, arguments if any, and a closing parenthesis.  Arguments are a series of zero-to-many expressions delimited by commas.  Auto-boxing and auto-unboxing will be applied automatically for arguments passed into a constructor call.  See boxing and unboxing [MARK] for more information on this topic.  Constructor argument types can always be resolved at run-time; if appropriate type conversions (casting) cannot be applied an error will occur.  Once a reference type instance has been allocated, its members may be used as part of other expressions.
+
+Constructor calls may be overloaded based on arity in Painless.  This means the same reference type may have multiple constructors as long as the number of arguments differs for each one.  This does have an effect on some of the provided reference type constructors in the Painless API [MARK].  When there are overloaded constructors with the same arity for a reference type in Java a single constructor must be chosen to be provided in Painless.
+
+Grammar:
+[source,ANTLR4]
+----
+constructor_call: 'new' TYPE '(' (expression (',' expression)*)? ')';
+----
+
+Examples:
+[source,Java]
+----
+Map m = new HashMap();   // declares the Map variable m and sets it to a newly allocated HashMap using an empty constructor
+m.put(3, 3);             // invokes the method call member put and adds the key-value pair of 3 to Map variable m
+def d = new ArrayList(); // declares the def variable d and sets it to a newly allocated ArrayList using an empty constructor
+def e;                   // declares the def variable e
+e = new HashMap(m);      // sets e to a newly allocated HashMap using the constructor with a single argument m
+----
+
+=== New Array
+
+An array type instance can be allocated using the new operator. The format starts with the new operator followed by the type followed by a series of opening and closing braces each containing an expression for the size of the dimension.
+
+Grammar:
+[source,ANTLR4]
+----
+new_array: 'new' TYPE ('[' expression ']')+;
+----
+
+Example(s):
+[source,Java]
+----
+int[] x = new int[5];      // declares an int array variable x and sets it to a newly allocated array with a size of 5
+x = new int[10];           // sets the int array variable x to a newly allocated array with a size of 10
+def[][] y = new def[5][5]; // declares a 2-dimensional def array variable y and set it to a newly
+                           // allocated 2-dimensional array where both dimensions have a size of 5
+----
+
+=== Multiplication
+
+Multiplies two numerical expressions.  Rules for resultant overflow and NaN values follow the Java specification.  The format is an expression, followed by the star operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+multiplication: expression '*' expression;
+----
+
+A numeric promotion may occur during a multiplication operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric numbers will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+int x = 5*4;      // declares the int variable x and sets it to the result of 5 multiplied by 4
+double y = x*7.0; // declares the double variable y and sets it to the result of x multiplied by 7.0 (x is promoted to a double)
+def z = x*y;      // declares the def variable z and sets it to the result of x multiplied by y (x is promoted to a double)
+def a = z*x;      // declares the def variable a and sets it to the result of z multiplied by x (x is promoted to def at compile-time and double at run-time)
+----
+
+=== Division
+
+Divides two numerical expressions.  Rules for NaN values and division by zero follow the Java specification.  Integer division will drop the remainder of the resultant value.  The format is an expression, followed by the slash operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+division: expression '/' expression;
+----
+
+A numeric promotion may occur during a division operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+int x = 5/4;      // declares the int variable x and sets it to the result of 5 divided by 4
+double y = x/7.0; // declares the double variable y and sets it to the result of x divided by 7.0 (x is promoted to a double)
+def z = x/y;      // declares the def variable z and sets it to the result of x divided by y (x is promoted to a double)
+def a = z/x;      // declares the def variable a and sets it to the result of z divided by x (x is promoted to def at compile-time and double at run-time)
+----
+
+=== Remainder
+
+Calculates the remainder for division between two numerical expressions.  Rules for NaN values and division by zero follow the Java specification.  The format is an expression, followed by the percent operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+remainder: expression '%' expression;
+----
+
+A numeric promotion may occur during a remainder operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+int x = 5%4;      // declares the int variable x and sets it to the remainder of 5 divided by 4
+double y = x%7.0; // declares the double variable y and sets it to the remainder of x divided by 7.0 (x is promoted to a double)
+def z = x%y;      // declares the def variable z and sets it to the remainder of x divided by y (x is promoted to a double)
+def a = z%x;      // declares the def variable a and sets it to the remainder of z divided by x (x is promoted to def at compile-time and double at run-time)
+----
+
+=== String Concatenation
+
+Concatenates two expressions together as a single String where at least of one of the expressions is a String to begin with.  The format is an expression, followed by a plus operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+concatenate: expression '+' expression;
+----
+
+Examples:
+[source,Java]
+----
+String x = "con";          // declares the String variable x and sets it to the String constant "con"
+String y = x + "cat";      // declares the String variable y and sets it to the concatenation of the String variable x and the String constant "cat"
+String z = 4 + x;          // declares the String variable z and sets it to the concatenation of the int constant 4 and the String variable x (4 is implicitly cast to a String)
+def d = 2;                 // declares the def variable d and sets it to the int constant 2
+z = z + d;                 // sets the String variable z to the concatenation of the String variable z
+d = "con" + x + y + "cat"; // sets the def variable d to the concatenation of String constant "con", x, y, and the String constant "cat"
+----
+
+=== Addition
+
+Adds two numerical expressions.  Rules for resultant overflow and NaN values follow the Java specification.  The format is an expression, followed by the plus operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+addition: expression '+' expression;
+----
+
+A numeric promotion may occur during a addition operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error, except in the case of String which then implies the operation is string concatenation [MARK] rather than addition.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+int x = 5 + 4;      // declares the int variable x and sets it to the result of 5 added to 4
+double y = x + 7.0; // declares the double variable y and sets it to the result of x added to 7.0 (x is promoted to a double)
+def z = x + y;      // declares the def variable z and sets it to the result of x added to y (x is promoted to a double)
+def a = z + x;      // declares the def variable a and sets it to the result of z added to x (x is promoted to def at compile-time and double at run-time)
+----
+
+=== Subtraction
+
+Subtracts two numerical expressions.  Rules for resultant overflow and NaN values follow the Java specification.  The format is an expression, followed by the minus operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+subtraction: expression '-' expression;
+----
+
+A numeric promotion may occur during a subtraction operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+int x = 5-4;      // declares the int variable x and sets it to the result of 4 subtracted from 5
+double y = x-7.0; // declares the double variable y and sets it to the result of 7.0 subtracted from x (x is promoted to a double)
+def z = x-y;      // declares the def variable z and sets it to the result of y subtracted from x (x is promoted to a double)
+def a = z-x;      // declares the def variable a and sets it to the result of x subtracted from z (x is promoted to def at compile-time and double at run-time)
+----
+
+=== Left Shift
+
+Shifts lower order bits to higher order bits in the left-side expression by the distance specified in the right-side expression.  The format is an expression followed by two left-carrots, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+left_shift: expression '<<' expression;
+----
+
+A numeric promotion may occur during a left shift operation to the left-side expression.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric and floating point expressions will result in an error.
+
+Promotion Table:
+|====
+|from|to
+|byte|int
+|short|int
+|char|int|
+|int|int|
+|long|long
+|def|def
+|====
+
+The right-side expression will be explicitly cast to an int value and truncated based on the promoted type of the left-side expression.  If the left-side expression is of type int then the lowest order 5-bits will be taken as the distance to shift from the right-side expression (0-31).  If the left-side expression is of type long then the lowest order 6-bits will be taken as the distance to shift from the right-side expression (0-63). Non-numeric and floating point expressions will result in an error.
+
+Examples:
+[source,Java]
+----
+int x = 5 << 4;  // declares the int variable x and sets it to the result of 5 left shifted by 4
+long y = x << 7; // declares the long variable y and sets it to the result of x left shifted by 7 (x is promoted to a long)
+def z = x << y;  // declares the def variable z and sets it to the result of x left shifted by y
+def a = z << x;  // declares the def variable a and sets it to the result of z left shifted by x
+----
+
+=== Right Shift
+
+Shifts higher order bits to lower order bits in the left-side expression by the distance specified in the right-side expression.  Right shift will preserve the signed bit (highest order bit) as part of the result.  The format is an expression followed by two right-carrots, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+right_shift: expression '>>' expression;
+----
+
+A numeric promotion may occur during a right shift operation to the left-side expression.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric and floating point expressions will result in an error.
+
+Promotion Table:
+|====
+|from|to
+|byte|int
+|short|int
+|char|int|
+|int|int|
+|long|long
+|def|def
+|====
+
+The right-side expression will be explicitly cast to an int value and truncated based on the promoted type of the left-side expression.  If the left-side expression is of type int then the lowest order 5-bits will be taken as the distance to shift from the right-side expression (0-31).  If the left-side expression is of type long then the lowest order 6-bits will be taken as the distance to shift from the right-side expression (0-63). Non-numeric and floating point expressions will result in an error.
+
+Examples:
+[source,Java]
+----
+int x = 5 >> 4;  // declares the int variable x and sets it to the result of 5 right shifted by 4
+long y = x >> 7; // declares the long variable y and sets it to the result of x right shifted by 7 (x is promoted to a long)
+def z = x >> y;  // declares the def variable z and sets it to the result of x right shifted by y
+def a = z >> x;  // declares the def variable a and sets it to the result of z right shifted by x
+----
+
+=== Unsigned Right Shift
+
+Shifts higher order bits to lower order bits in the left-side expression by the distance specified in the right-side expression.  Unsigned right shift will not preserve the signed bit (highest order bit) as part of the result.  The format is an expression followed by three right-carrots, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+unsigned_right_shift: expression '>>>' expression;
+----
+
+A numeric promotion may occur during an unsigned right shift operation to the left-side expression.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric and floating point expressions will result in an error.
+
+Promotion Table:
+|====
+|from|to
+|byte|int
+|short|int
+|char|int|
+|int|int|
+|long|long
+|def|def
+|====
+
+The right-side expression will be explicitly cast to an int value and truncated based on the promoted type of the left-side expression.  If the left-side expression is of type int then the lowest order 5-bits will be taken as the distance to shift from the right-side expression (0-31).  If the left-side expression is of type long then the lowest order 6-bits will be taken as the distance to shift from the right-side expression (0-63). Non-numeric and floating point expressions will result in an error.
+
+Examples:
+[source,Java]
+----
+int x = 5 >> 4;  // declares the int variable x and sets it to the result of 5 unsigned right shifted by 4
+long y = x >> 7; // declares the long variable y and sets it to the result of x unsigned right shifted by 7 (x is promoted to a long)
+def z = x >> y;  // declares the def variable z and sets it to the result of x unsigned right shifted by y
+def a = z >> x;  // declares the def variable a and sets it to the result of z unsigned right shifted by x
+----
+
+=== Greater Than
+
+Greater than compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a larger value than the right-side expression otherwise false.  The format is an expression, followed by the right angle operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+greater_than: expression '>' expression;
+----
+
+A numeric promotion may occur during a greater than operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+boolean x = 5 > 4; // declares the int variable x and sets it to the result of 5 greater than 4
+double y = 7.0;    // declares the double variable y and sets it to the double constant 7.0
+def z = y > 6.5;   // declares the def variable z and sets it to the result of y greater than 6.5
+def a = y > x;     // declares the def variable a and sets it to the result of y greater than z (x is promoted to double at compile-time)
+----
+
+=== Greater Than Or Equal
+
+Greater than or equal compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a larger value than or equal to the right-side expression otherwise false.  The format is an expression, followed by the right angle and equals operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+greater_than_or_equal: expression '>=' expression;
+----
+
+A numeric promotion may occur during a greater than or equal operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+boolean x = 5 >= 4; // declares the int variable x and sets it to the result of 5 greater than or equal to 4
+double y = 7.0;     // declares the double variable y and sets it to the double constant 7.0
+def z = y >= 6.5;   // declares the def variable z and sets it to the result of y greater than or equal to 6.5
+def a = y >= x;     // declares the def variable a and sets it to the result of y greater than or equal to z (x is promoted to double at compile-time)
+----
+
+=== Less Than
+
+Less than compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a smaller value than the right-side expression otherwise false.  The format is an expression, followed by the left angle operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+less_than: expression '<' expression;
+----
+
+A numeric promotion may occur during a less than operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+boolean x = 5 < 4; // declares the int variable x and sets it to the result of 5 less than 4
+double y = 7.0;    // declares the double variable y and sets it to the double constant 7.0
+def z = y < 6.5;   // declares the def variable z and sets it to the result of y less than 6.5
+def a = y < x;     // declares the def variable a and sets it to the result of y less than z (x is promoted to double at compile-time)
+----
+
+=== Less Than Or Equal
+
+Less than or equal compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a larger value than or equal to the right-side expression otherwise false.  The format is an expression, followed by the left angle and equals operator, and a closing expression.
+
+Grammar:
+[source,ANTLR4]
+----
+less_than_or_equal: expression '<=' expression;
+----
+
+A numeric promotion may occur during a less than or equal operation.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents. Non-numeric expressions will result in an error.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Examples:
+[source,Java]
+----
+boolean x = 5 <= 4; // declares the int variable x and sets it to the result of 5 less than or equal to 4
+double y = 7.0;     // declares the double variable y and sets it to the double constant 7.0
+def z = y <= 6.5;   // declares the def variable z and sets it to the result of y less than or equal to 6.5
+def a = y <= x;     // declares the def variable a and sets it to the result of y less than or equal to z (x is promoted to double at compile-time)
+----
+
+=== Instance Of
+
+The instanceof operator can be used to compare a variable's type to a specified reference type where a resultant boolean value is true if the variable type is the same as or a descendant of the specified reference type and false otherwise.  The format is an id, followed by the instanceof operator, and finished with a type.
+
+Grammar:
+[source,ANTLR4]
+----
+instance_of: ID 'instanceof' TYPE;
+----
+
+Examples:
+[source,Java]
+----
+Map x = new HashMap();            // declares the Map variable x and sets it to a newly allocated HashMap
+List y = new ArrayList();         // declares the List variable y and sets it to a newly allocated ArrayList
+def z = y;                        // declares the def variable z and sets it to y
+boolean a = x instanceof HashMap; // declares the boolean variable a and sets it to true since x's type is the same type as HashMap
+boolean b = y instanceof Map;     // declares the boolean variable b and sets it to false since y's type is not the same type as Map or a descendant of Map
+boolean c = z instanceof List;    // declares the boolean variable c and sets it to true since z's type is a descendant of the type List
+----
+
+
