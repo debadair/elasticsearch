@@ -721,7 +721,7 @@ List l1 = [i, l, f*d, s]; // declares the List variable l1 and sets it to a newl
 
 === List Access
 
-Elements in a List can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing elements in a List is --invoking a List's set method.  Accessing elements in a List is --invoking a List's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  The range of elements within a List that can be accessed is [0, size) where size is the number of elements currently in the List.  Elements may also be accessed from the last element in a List using a negative numeric value from [-size, -1].  The expression used to determine which element is accessed must be able to be implicitly cast to an int.  An error will occur if the expression is outside of the legal range or is not of type int.
+Elements in a List can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing elements in a List is equivalent to invoking a List's set method.  Accessing elements in a List is equivalent to invoking a List's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  The range of elements within a List that can be accessed is [0, size) where size is the number of elements currently in the List.  Elements may also be accessed from the last element in a List using a negative numeric value from [-size, -1].  The expression used to determine which element is accessed must be able to be implicitly cast to an int.  An error will occur if the expression is outside of the legal range or is not of type int.
 
 Grammar:
 [source,ANTLR4]
@@ -786,7 +786,7 @@ Map m1 = [b:i, l:f*d, d:s]; // declares the Map variable m1 and sets it to a new
 
 === Map Access
 
-Elements in a Map can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing values in a Map is --invoking a Map's put method.  Accessing values in a Map is --invoking a Map's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  Any element from a Map can be stored/accessed where the expression is the key.  If a key has no corresponding value when accessing a Map then the value will be null.
+Elements in a Map can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing values in a Map is equivalent to invoking a Map's put method.  Accessing values in a Map is equivalent to invoking a Map's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  Any element from a Map can be stored/accessed where the expression is the key.  If a key has no corresponding value when accessing a Map then the value will be null.
 
 Grammar:
 [source,ANTLR4]
@@ -2100,7 +2100,7 @@ Grammar:
 compund_assignment: ID (. ID)? '$=' expression; // $ is a placeholder for the operation symbol
 ----
 
-A compound assignment is --the expression below where V is the variable/member and T is the type of variable/member.
+A compound assignment is equivalent to the expression below where V is the variable/field and T is the type of variable/member.
 
 [source,Java]
 ----
@@ -2146,9 +2146,9 @@ i |= 4;             // ors i with 4 -- i = (int)(i | 4)
 
 boolean b = true;   // declares the boolean variable b and sets it to the constant boolean true
 b &= false;         // ands b with false -- b = (boolean)(b & false)
-b ^= false;         // xors b with false -- b = (boolean)(b ^ false)
-b |= true;          // ors be with true -- b = (boolean)(b | true)
+b ^= false;         // xors b with false -- b = (boolean)(b & false)
+b |= true;          // ors be with true -- b = (boolean)(b & false)
 
 def x = 'compound'; // declares the def variable x and sets it to the constant String 'compound'
-x += ' assignment'; // string concatenates ' assignment' to x -- x = (String)(x + 'assignment')
+x += ' assignment'; // string concatenates ' assignment' to x -- x = (String)(x + ' assignment')
 ----
