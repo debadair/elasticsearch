@@ -233,7 +233,7 @@ List m;                   // declare an List variable m and set it the default v
 m = k;                    // set the value of the List variable m to the value of the List variable k
 ----
 
-Ultimately, any left-hand side variable can be assigned to any right-hand side expression as long as the types match.
+Ultimately, any left-hand side variable can be assigned to any right-hand side expression as long as the types match or the expression's type can be implicitly cast to the variable's type.
 
 === Data Types
 
@@ -495,7 +495,9 @@ The following is a table of the available operators in Painless.  Each operator 
 |Less Than Or Equal|<=|7|left-to-right
 |Instance Of|instanceof|8|left-to-right
 |Equality Equals|==|9|left-to-right
-|Equality Not Equals|==|9|left-to-right
+|Equality Not Equals|!=|9|left-to-right
+|Identity Equals|===|9|left-to-right
+|Identity Not Equals|!==|9|left-to-right
 |Bitwise And|&|10|left-to-right
 |Boolean Xor|^|11|left-to-right
 |Bitwise Xor|^|11|left-to-right
@@ -503,10 +505,9 @@ The following is a table of the available operators in Painless.  Each operator 
 |Boolean And|&&|13|left-to-right
 |Boolean Or|\|\||14|left-to-right
 |Conditional|? :|15|right-to-left
+|Elvis|?:|16|right-to-left
 |====
 |====
-|Conditional|?|Conditional
-|Elvis|?:|Conditional with Null Shortcut
 |Null-Safe|?.|Null-Safe Member Access & Null-Safe Method Call
 |Equals|=|Variable Assignment
 |Compound Assignment|$=|Compound Assignment
@@ -1793,9 +1794,11 @@ result = l1 !== null;           // compares null to l1 with a boolean result of 
 
 Bitwise and will and together two integer type expressions.  The table below shows what each resultant bit will in the resultant integer type value be based on the corresponding bit in each integer type expression.
 
+|====
 ||1|0
 |1|1|0
 |0|0|0
+|====
 
 The format starts with an expression, follows with the ampersand operator, and finishes with an expression.
 
@@ -1833,9 +1836,11 @@ e = d & z;      // sets e to the result of d and z
 
 Boolean xor will xor together two boolean expressions.  The table below shows what the resultant boolean value will be based on the two boolean expressions.
 
+|====
 ||true|false
 |true|false|true
 |false|true|false
+|====
 
 The format starts with an expression, follows with the carrot operator, and finishes with an expression.
 
@@ -1859,9 +1864,11 @@ def z = y ^ x;        // declares the def variable z and sets it to the result o
 
 Bitwise xor will xor together two integer type expressions.  The table below shows what each resultant bit will in the resultant integer type value be based on the corresponding bit in each integer type expression.
 
+|====
 ||1|0
 |1|0|1
 |0|1|0
+|====
 
 The format starts with an expression, follows with the carrot operator, and finishes with an expression.
 
@@ -1899,9 +1906,11 @@ e = d ^ z;      // sets e to the result of d xor z
 
 Bitwise or will or together two integer type expressions.  The table below shows what each resultant bit will in the resultant integer type value be based on the corresponding bit in each integer type expression.
 
+|====
 ||1|0
 |1|1|1
 |0|1|0
+|====
 
 The format starts with an expression, follows with the pipe operator, and finishes with an expression.
 
@@ -1965,9 +1974,11 @@ def z = y && x;        // declares the def variable z and sets it to the result 
 
 Boolean or will or together two boolean expressions.  If the first expression is found to be true then it is known that the result will also be true, so evaluation of the second expression will be skipped.  The table below shows what the resultant boolean value will be based on the two boolean expressions.
 
+|====
 ||true|false
 |true|true|true
 |false|true|false
+|====
 
 The format starts with an expression, follows with the pipe-pipe operator, and finishes with an expression.
 
@@ -1988,3 +1999,63 @@ def z = y || x;        // declares the def variable z and sets it to the result 
 ----
 
 === Conditional
+
+A conditional operation consists of three expressions.  The first expression is evaluated with an expected boolean result type.  If the first expression evaluates to true then the second expression will be evaluated.  If the first expression evaluates to false then the third expression will be evaluated.  This can be used as a shortcut many different operations without requiring a full if/else branch.  Errors will occur if the first expression does not evaluate to a boolean type or if one of the second or third expression cannot be converted to a type appropriate for the expected result.  The format is an expression followed by a question-mark operator, another expression, a colon operator, and finishes with a final expression.
+
+Grammar:
+[source,ANTLR4]
+----
+conditional: expression '?' expression ':' expression;
+----
+
+A numeric type promotion may occur during the evaluation of a conditional with the second and third expressions if the expected result is a numeric type.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.
+
+Promotion Table:
+|====
+||byte|short|char|int|long|float|double|def
+|byte|int|int|int|int|long|float|double|def
+|short|int|int|int|int|long|float|double|def
+|char|int|int|int|int|long|float|double|def
+|int|int|int|int|int|long|float|double|def
+|long|long|long|long|long|long|float|double|def
+|float|float|float|float|float|float|float|double|def
+|double|double|double|double|double|double|double|double|def
+|def|def|def|def|def|def|def|def|def
+|====
+
+Example(s):
+[source,Java]
+----
+boolean b = true;                        // declares the boolean variable b and sets it the constant boolean true
+
+int x = b ? 1 : 2;                       // declares the int variable x and sets it to the int constant 1
+                                         // since the first expression of the conditional evaluates to true
+                                         // so the second expression is evaluated for a result
+
+List y = x > 1 ? new ArrayList() : null; // declares the List variable y and sets it to null
+                                         // since the first expression of the conditional evaluates to false
+                                         // so the third expression is evaluated for a result
+
+def z = x < 2 ? true : false;            // declares the def variable z and sets it to the boolean constant true
+                                         // since the first expression of the conditional evaluates to true
+                                         // so the second expression is evaluated for a result
+----
+
+=== Elvis
+
+The elvis operator consists of two expressions.  If the first expression is a non-null value then the resultant value will be the evaluated first expression otherwise the resultant value will be the evaluated second expression.  This is typically used as a shortcut for a null check in a conditional.  An error will occur if the expected result is a primitive type.  The format is an expression, followed by the question-mark-colon operator, and finishes with an expression.
+
+Grammar:
+[source,ANTLR4]
+----
+elvis: expression '?:' expression;
+----
+
+Example(s):
+[source,Java]
+----
+List l = new ArrayList();     // declares the List variable l and sets it to a newly allocated ArrayList
+List y = l : new ArrayList(); // declares the List variable y and sets it to l since l is not null
+y = null;                     // sets y to null
+def z = y ?: new HashMap();   // declares the def variable z and sets it to a newly allocated HashMap since y is null
+----
