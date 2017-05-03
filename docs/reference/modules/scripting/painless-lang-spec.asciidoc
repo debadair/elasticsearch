@@ -462,6 +462,7 @@ The following is a table of the available operators in Painless.  Each operator 
 |Precedence|()|0|left-to-right
 |Field Access|.|1|left-to-right
 |Method Call|. ()|1|left-to-right
+|Null Safe|?.|1|left-to-right
 |Function Call|()|1|left-to-right
 |Array Initialization|[] {}|1|left-to-right
 |Array Access|[]|1|left-to-right
@@ -483,9 +484,10 @@ The following is a table of the available operators in Painless.  Each operator 
 |New Array|new|3|right-to-left
 |Multiplication|*|4|left-to-right
 |Division|/|4|left-to-right
+|Remainder|%|4|left-to-right
 |String Concatenation|+|5|left-to-right
 |Addition|+|5|left-to-right
-|Subtraction|+|5|left-to-right
+|Subtraction|-|5|left-to-right
 |Left Shift|<<|6|left-to-right
 |Right Shift|>>|6|left-to-right
 |Unsigned Right Shift|>>>|6|left-to-right
@@ -506,11 +508,8 @@ The following is a table of the available operators in Painless.  Each operator 
 |Boolean Or|\|\||14|left-to-right
 |Conditional|? :|15|right-to-left
 |Elvis|?:|16|right-to-left
-|====
-|====
-|Null-Safe|?.|Null-Safe Member Access & Null-Safe Method Call
-|Equals|=|Variable Assignment
-|Compound Assignment|$=|Compound Assignment
+|Assignment|=|17|right-to-left
+|Compound Assignment|$=|17|right-to-left
 |====
 
 === Precedence
@@ -593,6 +592,33 @@ get(Integer)
 ----
 
 The constants 1 and 2 in this case would be boxed from the primitive type int to the reference type Integer implicitly.
+
+=== Null Safe
+
+The null safe operator can be used as a shortcut to check if a reference type instance is null before attempting to access a field or make a method call against that instance.  If the reference type is a null value then the resultant value will be null.  If the reference type is a non-null value then the resultant type will be the result of the method call or field access.  All resultant types must be a reference type or be able to be implicitly cast to a reference type or an error will occur.  The format is a the same as a field access or method call except the dot operator is replaced by the question-mark-dot operator.
+
+Grammar:
+[source,ANTLR4]
+----
+null_safe: null_safe_field_access
+         | null_safe_method_call;
+null_safe_field_access: ID '?.' ID;
+null_safe_method_call: ID '?.' ID '(' (expression (',' expression)*)? ')';
+----
+
+[source,Java]
+----
+Map x = new HashMap(); // declares the Map variable x and sets it to a newly allocated HashMap
+Map y = null;          // declares the Map variable y and sets it to null
+def z = new HashMap(); // declares the def variable z and sets it to a newly allocated HashMap
+
+x.put(1, 2);           // puts the key-value pair 1 and 2 into x
+z.put(5, 6);           // puts the key-value pair 5 and 6 into z
+
+def value = x?.get(1); // declares the def variable value and set its to the result of .get(1) since x is not null
+value = y?.get(3);     // sets value to null since y is null
+value = z?.get(5);     // sets value to the result of .get(5) since z is not null
+----
 
 === Function Call
 
@@ -695,7 +721,7 @@ List l1 = [i, l, f*d, s]; // declares the List variable l1 and sets it to a newl
 
 === List Access
 
-Elements in a List can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing elements in a List is equivalent to invoking a List's set method.  Accessing elements in a List is equivalent to invoking a List's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  The range of elements within a List that can be accessed is [0, size) where size is the number of elements currently in the List.  Elements may also be accessed from the last element in a List using a negative numeric value from [-size, -1].  The expression used to determine which element is accessed must be able to be implicitly cast to an int.  An error will occur if the expression is outside of the legal range or is not of type int.
+Elements in a List can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing elements in a List is --invoking a List's set method.  Accessing elements in a List is --invoking a List's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  The range of elements within a List that can be accessed is [0, size) where size is the number of elements currently in the List.  Elements may also be accessed from the last element in a List using a negative numeric value from [-size, -1].  The expression used to determine which element is accessed must be able to be implicitly cast to an int.  An error will occur if the expression is outside of the legal range or is not of type int.
 
 Grammar:
 [source,ANTLR4]
@@ -760,7 +786,7 @@ Map m1 = [b:i, l:f*d, d:s]; // declares the Map variable m1 and sets it to a new
 
 === Map Access
 
-Elements in a Map can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing values in a Map is equivalent to invoking a Map's put method.  Accessing values in a Map is equivalent to invoking a Map's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  Any element from a Map can be stored/accessed where the expression is the key.  If a key has no corresponding value when accessing a Map then the value will be null.
+Elements in a Map can be stored or accessed using the braces operator.  The format begins with an opening brace, followed by an expression, and finishes with a closing brace.  Storing values in a Map is --invoking a Map's put method.  Accessing values in a Map is --invoking a Map's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  Any element from a Map can be stored/accessed where the expression is the key.  If a key has no corresponding value when accessing a Map then the value will be null.
 
 Grammar:
 [source,ANTLR4]
@@ -790,7 +816,7 @@ Note in the first example above all types can be resolved at compile-time, while
 
 === Post Increment
 
-A variable/member representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a plus and ends with a plus.
+A variable/field representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a plus and ends with a plus.
 
 Grammar:
 [source,ANTLR4]
@@ -798,7 +824,7 @@ Grammar:
 post_increment: ( variable | member ) '++'
 ----
 
-A numeric promotion may occur during a post-increment followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+A numeric promotion may occur during a post-increment followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  A downcast may be required after the type promotion to assign the appropriate value back into the variable/field.  Non-numeric variables/members will result in an error.
 
 Promotion Table:
 
@@ -826,7 +852,7 @@ k = l++;      // sets the long variable k to the value of l (1), and then increm
 
 === Post Decrement
 
-A variable or member representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a minus and ends with a minus.
+A variable/field representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a minus and ends with a minus.
 
 Grammar:
 [source,ANTLR4]
@@ -834,7 +860,7 @@ Grammar:
 post_increment: ( variable | member ) '--'
 ----
 
-A numeric promotion may occur during a post-decrement followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+A numeric promotion may occur during a post-decrement followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  A downcast may be required after the type promotion to assign the appropriate value back into the variable/field.  Non-numeric variables/members will result in an error.
 
 Promotion Table:
 
@@ -862,7 +888,7 @@ k = l--;        // sets the float variable k to the value of l (1.0f), and then 
 
 === Pre Increment
 
-A variable or member representing a numerical value can be increased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a plus followed by a plus and ends with a variable name.
+A variable/field representing a numerical value can be increased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a plus followed by a plus and ends with a variable name.
 
 Grammar:
 [source,ANTLR4]
@@ -870,7 +896,7 @@ Grammar:
 pre_increment: '++' ( variable | member )
 ----
 
-A numeric promotion may occur during a pre-increment followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+A numeric promotion may occur during a pre-increment followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  A downcast may be required after the type promotion to assign the appropriate value back into the variable/field.  Non-numeric variables/members will result in an error.
 
 Promotion Table:
 
@@ -898,7 +924,7 @@ k = ++l;      // increments the long variable l by 1 to a value of 2, and then s
 
 === Pre Decrement
 
-A variable or member representing a numerical value can be decreased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a minus followed by a minus and ends with a variable name.
+A variable/field representing a numerical value can be decreased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a minus followed by a minus and ends with a variable name.
 
 Grammar:
 [source,ANTLR4]
@@ -906,7 +932,7 @@ Grammar:
 pre_decrement: '--' ( variable | member )
 ----
 
-A numeric promotion may occur during a pre-decrement followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  Non-numeric variables/members will result in an error.
+A numeric promotion may occur during a pre-decrement followed by a downcast if necessary.  A def type evaluated at run-time will follow the same promotion table at run-time following whatever type def represents.  A downcast may be required after the type promotion to assign the appropriate value back into the variable/field.  Non-numeric variables/members will result in an error.
 
 Promotion Table:
 |====
@@ -2058,4 +2084,71 @@ List l = new ArrayList();     // declares the List variable l and sets it to a n
 List y = l : new ArrayList(); // declares the List variable y and sets it to l since l is not null
 y = null;                     // sets y to null
 def z = y ?: new HashMap();   // declares the def variable z and sets it to a newly allocated HashMap since y is null
+----
+
+=== Assignment
+
+Assignment can be used to assign a value to a variable.  See Variable Assignment [MARK] for more information.
+
+=== Compound Assignment
+
+Compound assignment can be used as a shortcut for an assignment where a binary operation would occur between the variable/field as the left-side expression and a separate right-side expression.  The variable/field and right-side expression must be of appropriate types for the specific operation or an error will occur.  A downcast may be necessary for certain operations to be able to assign the result back into the variable/field and will happen implicitly.  The format is a variable/field, followed by one of the compound assignment operators, finished with an expression.
+
+Grammar:
+[source,ANTLR4]
+----
+compund_assignment: ID (. ID)? '$=' expression; // $ is a placeholder for the operation symbol
+----
+
+A compound assignment is --the expression below where V is the variable/member and T is the type of variable/member.
+
+[source,Java]
+----
+V = (T)(V op expression);
+----
+
+The table below shows all available operators for compound assignment.  All operators follow any casting/promotion rules according to their regular definition.
+
+|====
+|Operator|Compound Symbol
+|Multiplication|*=
+|Division|/=
+|Remainder|%=
+|String Concatenation|+=
+|Addition|+=
+|Subtraction|-=
+|Left Shift|<<=
+|Right Shift|>>=
+|Unsigned Right Shift|>>>=
+|Bitwise And|&=
+|Boolean And|&=
+|Bitwise Xor|^=
+|Boolean Xor|^=
+|Bitwise Or|\|=
+|Boolean Or|\|=
+|====
+
+Example(s):
+[source,Java]
+----
+int i = 10;         // declares the variable i and sets it to constant int 10
+i *= 2;             // multiplies i by 2 -- i = (int)(i * 2)
+i /= 5;             // divides i by 5 -- i = (int)(i / 5)
+i %= 3;             // gives the remainder for i/3 -- i = (int)(i % 3)
+i += 5;             // adds 5 to i -- i = (int)(i + 5)
+i -= 5;             // subtracts 5 from i -- i = (int)(i - 5)
+i <<= 2;            // left shifts i by 2 -- i = (int)(i << 2)
+i >>= 1;            // right shifts i by 1 -- i = (int)(i >> 1)
+i >>>= 1;           // unsigned right shifts i by 1 -- i = (int)(i >>> 1)
+i &= 15;            // ands i with 15 -- i = (int)(i & 15)
+i ^= 12;            // xors i with 12 -- i = (int)(i ^ 2)
+i |= 4;             // ors i with 4 -- i = (int)(i | 4)
+
+boolean b = true;   // declares the boolean variable b and sets it to the constant boolean true
+b &= false;         // ands b with false -- b = (boolean)(b & false)
+b ^= false;         // xors b with false -- b = (boolean)(b ^ false)
+b |= true;          // ors be with true -- b = (boolean)(b | true)
+
+def x = 'compound'; // declares the def variable x and sets it to the constant String 'compound'
+x += ' assignment'; // string concatenates ' assignment' to x -- x = (String)(x + 'assignment')
 ----
