@@ -1,64 +1,117 @@
 === Operators
 
-The following is a table of the available operators in Painless.  Each operator will have further information and examples outside of the table.  Many operators will have a promotion table as described by the documentation on promotion [MARK].
+The following table lists all of the operators Painless supports. Follow the
+links for detailed information about each operator, including <<promotion,
+promotion>> tables (where applicable).
 
 [options="header",cols="6,3,2,4"]
 |====
-|Operator|Symbol(s)|Precedence|Associativity
-|Precedence|()|0|left-to-right
-|Field Access|.|1|left-to-right
-|Method Call|. ()|1|left-to-right
-|Null Safe|?.|1|left-to-right
-|Function Call|()|1|left-to-right
-|Array Initialization|[] {}|1|left-to-right
-|Array Access|[]|1|left-to-right
-|Array Length|.|1|left-to-right
-|List Initialization|[]|1|left-to-right
-|List Access|[]|1|left-to-right
-|Map Initialization|[:]|1|left-to-right
-|Map Access|[]|1|left-to-right
-|Post Increment|++|1|left-to-right
-|Post Decrement|--|1|left-to-right
-|Pre Increment|++|2|right-to-left
-|Pre Decrement|--|2|right-to-left
-|Unary Positive|+|2|right-to-left
-|Unary Negative|-|2|right-to-left
-|Boolean Not|!|2|right-to-left
-|Bitwise Not|~|2|right-to-left
-|Cast|()|3|right-to-left
-|Constructor Call|new ()|3|right-to-left
-|New Array|new|3|right-to-left
-|Multiplication|*|4|left-to-right
-|Division|/|4|left-to-right
-|Remainder|%|4|left-to-right
-|String Concatenation|+|5|left-to-right
-|Addition|+|5|left-to-right
-|Subtraction|-|5|left-to-right
-|Left Shift|<<|6|left-to-right
-|Right Shift|>>|6|left-to-right
-|Unsigned Right Shift|>>>|6|left-to-right
-|Greater Than|>|7|left-to-right
-|Greater Than Or Equal|>=|7|left-to-right
-|Less Than|<|7|left-to-right
-|Less Than Or Equal|<=|7|left-to-right
-|Instance Of|instanceof|8|left-to-right
-|Equality Equals|==|9|left-to-right
-|Equality Not Equals|!=|9|left-to-right
-|Identity Equals|===|9|left-to-right
-|Identity Not Equals|!==|9|left-to-right
-|Bitwise And|&|10|left-to-right
-|Boolean Xor|^|11|left-to-right
-|Bitwise Xor|^|11|left-to-right
-|Bitwise Or|\||12|left-to-right
-|Boolean And|&&|13|left-to-right
-|Boolean Or|\|\||14|left-to-right
-|Conditional|? :|15|right-to-left
-|Elvis|?:|16|right-to-left
-|Assignment|=|17|right-to-left
-|Compound Assignment|$=|17|right-to-left
+|Operator                |Symbol(s)     |Precedence     |Associativity
+|<<precedence, Precedence>>
+                         |()            |0              |left-to-right
+|<<field-access, Field Access>>
+                         |.             |1              |left-to-right
+|<<method-access, Method Call>>
+                         |. ()          |1              |left-to-right
+|<<null-safe, Null Safe>>
+                         |?.            |1              |left-to-right
+|<<parenthesis, Function Call>>
+                         |()            |1              |left-to-right
+|<<array-initialization, Array Initialization>>
+                         |[] {}         |1              |left-to-right
+|<<array-access, Array Access>>
+                         |[]            |1              |left-to-right
+|<<array-length, Array Length>>
+                         |.             |1              |left-to-right
+|<<list-initialization, List Initialization>>
+                         |[]            |1              |left-to-right
+|<<list-access, List Access>>
+                         |[]            |1              |left-to-right
+|<<map-initialization, Map Initialization>>
+                         |[:]           |1              |left-to-right
+|<<map-access, Map Access>>
+                         |[]            |1              |left-to-right
+|<<post-increment, Post Increment>>
+                         |++            |1              |left-to-right
+|<<post-decrement, Post Decrement>>
+                         |--            |1              |left-to-right
+|<<pre-increment, Pre Increment>>
+                         |++            |2              |right-to-left
+|<<pre-decrement, Pre Decrement>>
+                         |--            |2              |right-to-left
+|<<unary-positive, Unary Positive>>
+                         |+             |2              |right-to-left
+|<<unary-negative, Unary Negative>>
+                         |-             |2              |right-to-left
+|<<boolean-not, Boolean Not>>
+                         |!             |2              |right-to-left
+|<<bitwise-not, Bitwise Not>>
+                         |~             |2              |right-to-left
+|<<cast, Cast>>
+                         |()            |3              |right-to-left
+|<<constructor, Constructor Call>>
+                         |new ()        |3              |right-to-left
+|<<new-array, New Array>>
+                         |new           |3              |right-to-left
+|<<multiplication, Multiplication>>
+                         |*             |4              |left-to-right
+|<<division, Division>>
+                         |/             |4              |left-to-right
+|<<remainder, Remainder>>
+                         |%             |4              |left-to-right
+|<<string-concatenation, String Concatenation>>
+                         |+             |5              |left-to-right
+|<<addition, Addition>>
+                         |+             |5              |left-to-right
+|<<subtraction, Subtraction>>
+                         |-             |5              |left-to-right
+|<<left-shift, Left Shift>>
+                         |<<            |6              |left-to-right
+|<<right-shift, Right Shift>>
+                         |>>            |6              |left-to-right
+|<<unsigned-right-shift, Unsigned Right Shift>>
+                         |>>>           |6              |left-to-right
+|<<greater-than, Greater Than>>
+                         |>             |7              |left-to-right
+|<<greater-than-or-equal, Greater Than Or Equal>>
+                         |>=            |7              |left-to-right
+|<<less-than, Less Than>>
+                         |<             |7              |left-to-right
+|<<less-than-or-equal, Less Than Or Equal>>
+                         |<=            |7              |left-to-right
+|<<instance-of, Instance Of>>
+                         |instanceof    |8              |left-to-right
+|<<equality-equals, Equality Equals>>
+                         |==            |9              |left-to-right
+|<<equality-not-equals, Equality Not Equals>>
+                         |!=            |9              |left-to-right
+|<<identity-equals, Identity Equals>>
+                         |===           |9              |left-to-right
+|<<identity-not-equals, Identity Not Equals>>
+                         |!==           |9              |left-to-right
+|<<bitwise-and, Bitwise And>>
+                         |&             |10             |left-to-right
+|<<boolean-xor, Boolean Xor>>
+                         |^             |11             |left-to-right
+|<<bitwise-xor, Bitwise Xor>>
+                         |^             |11             |left-to-right
+|<<bitwise-or, Bitwise Or>>
+                         |\|            |12             |left-to-right
+|<<boolean-and, Boolean And>>
+                         |&&            |13             |left-to-right
+|<<boolean-or, Boolean Or>>
+                         |\|\|          |14             |left-to-right
+|<<conditional, Conditional>>
+                         |? :           |15             |right-to-left
+|<<elvis, Elvis>>
+                         |?:            |16             |right-to-left
+|<<assignment, Assignment>>
+                         |=             |17             |right-to-left
+|<<compound-assignment, Compound Assignment>>
+                         |$=            |17             |right-to-left
 |====
 
-[[precedence-operator]]
+[[precedence]]
 ==== Precedence
 
 You group expressions using the precedence operator to guarantee
@@ -81,7 +134,7 @@ int y = 2*(x-4); // declares the variable int y and sets it to 2*(x-4)
 ----
 
 
-[[dot-operator]]
+[[dot]]
 ==== Dot
 You use the dot operator `.` to access a type's <<field-access,
 fields>> and <<method-access, methods>>.
@@ -189,6 +242,7 @@ casts between primitive types and reference types, see <<boxing-unboxing, Boxing
 and Unboxing>>.
 **************************
 
+[[null-safe]]
 ==== Null Safe
 
 The null safe operator `?.` can be used in place of the dot operator
@@ -229,16 +283,19 @@ value = y?.get(3);     // Sets value to null since y is null
 value = z?.get(5);     // Sets value to the result of .get(5) since z is not null
 ----
 
+[[parenthesis]]
 ==== Parenthesis
 
 User-defined function calls can be made in Painless using the parenthesis
 operator.  See Function Calls [MARK] for more information.
 
+[[brackets-braces]]
 ==== Brackets and Braces
 
 The brackets operator `[]` is used to create and access arrays, lists, and maps.
 The braces operator `{}` is used to intialize arrays.
 
+[[array-initialization]]
 ===== Creating and Initializing Arrays
 
 You create and initialize arrays using the brackets `[]` and braces `{}`
@@ -250,6 +307,7 @@ array with a size of 3 and the values 1, 2, and 3.
 For more information about allocating and initializing arrays, see <<array-type,
 Array Type>>.
 
+[[array-access]]
 ===== Accessing Array Elements
 
 Elements in an array are stored and accessed using the brackets `[]` operator.
@@ -297,6 +355,7 @@ return d[z];              // Access the 1st element of array d using the
 NOTE: The use of the `def` type in the second example means that the types
 cannot be resolved until runtime.
 
+[[array-length]]
 ===== Array Length
 
 Arrays contain a special member known as 'length' that is a read-only value that contains the size of the array.  This member can be accessed from an array using the dot operator.
@@ -308,6 +367,7 @@ int[] x = new int[10]; // declares an int array variable x and sets it to a newl
 int l = x.length;      // declares and int variable l and sets it to the field length of variable x
 ----
 
+[[list-initialization]]
 ===== Creating and Initializing Lists
 
 You create and initialize lists using the brackets `[]` operator. The values
@@ -338,6 +398,7 @@ String s = "5";
 List l1 = [i, l, f*d, s]; // declares the List variable l1 and sets it to a newly initialized List with the values of i, l, and f*d and s
 ----
 
+[[list-access]]
 ===== Accessing List Elements
 
 Elements in a List are stored or accessed using the brackets operator.  The format begins with an opening bracket, followed by an expression, and finishes with a closing bracket.  Storing elements in a List is equivalent to invoking a List's set method.  Accessing elements in a List is equivalent to invoking a List's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  The range of elements within a List that can be accessed is [0, size) where size is the number of elements currently in the List.  Elements may also be accessed from the last element in a List using a negative numeric value from [-size, -1].  The expression used to determine which element is accessed must be able to be implicitly cast to an int.  An error will occur if the expression is outside of the legal range or is not of type int.
@@ -374,6 +435,7 @@ return d[z];             // accesses the 1st element of the variable d using the
 
 Note in the first example above all types can be resolved at compile-time, while in the second example all types must wait to be resolved until run-time.
 
+[[map-initialization]]
 ===== Creating and Initializing Maps
 
 A Map can be created and initialized using the brackets operator.  The format begins with a bracket, followed by an arbitrary number of key-value pairs delimited with commas (except the last), and ends with a closing bracket.  Each key-value pair is a set of two expressions separate by a colon.  If there is only a single colon with no expressions, a new empty Map is created.
@@ -404,6 +466,7 @@ String s = "5";
 Map m1 = [b:i, l:f*d, d:s]; // declares the Map variable m1 and sets it to a newly initialized Map with the keys b, l, d and values i, f*d, s, respectively
 ----
 
+[[map-access]]
 ===== Accessing Map Elements
 
 Elements in a Map can be stored or accessed using the brackets operator.  The format begins with an opening bracket, followed by an expression, and finishes with a closing bracket.  Storing values in a Map is equivalent to invoking a Map's put method.  Accessing values in a Map is equivalent to invoking a Map's get method.  Using this operator is strictly a shortcut for the previously mentioned methods.  Any element from a Map can be stored/accessed where the expression is the key.  If a key has no corresponding value when accessing a Map then the value will be null.
@@ -434,6 +497,7 @@ return d[z];                       // accesses the value for the key value5 of t
 
 Note in the first example above all types can be resolved at compile-time, while in the second example all types must wait to be resolved until run-time.
 
+[[post-increment]]
 ==== Post Increment
 
 A variable/field representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a plus and ends with a plus.
@@ -470,6 +534,7 @@ long k;       // declares the long variable k
 k = l++;      // sets the long variable k to the value of l (1), and then increments the long variable l by 1 to a value of 2
 ----
 
+[[post-decrement]]
 ==== Post Decrement
 
 A variable/field representing a numerical value can be possibly evaluated as part of an expression, and then increased by 1 for its respective type.  The format starts with a variable name followed by a minus and ends with a minus.
@@ -506,6 +571,7 @@ float k;        // declares the float variable k
 k = l--;        // sets the float variable k to the value of l (1.0f), and then decrements the float variable l by 1.0 to a value of 0.0
 ----
 
+[[pre-increment]]
 ==== Pre Increment
 
 A variable/field representing a numerical value can be increased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a plus followed by a plus and ends with a variable name.
@@ -542,6 +608,7 @@ long k;       // declares the long variable k
 k = ++l;      // increments the long variable l by 1 to a value of 2, and then sets the long variable k to the value of l (2)
 ----
 
+[[pre-decrement]]
 ==== Pre Decrement
 
 A variable/field representing a numerical value can be decreased by 1 for its respective type, and then possibly evaluated as part of an expression.  The format starts with a minus followed by a minus and ends with a variable name.
@@ -577,6 +644,7 @@ double k;        // declares the double variable k
 k = --l;         // decrements the double variable l by 1.0 to a value of 0.0, and then sets the double variable k to the value of l (0.0)
 ----
 
+[[unary-positive]]
 ==== Unary Positive
 
 Unary positive gives the identity of a numerical value using the plus operator.  In practice this is usually a no-op, but will cause some numeric types to be promoted.  Format starts with a plus operator followed by a numerical expression.
@@ -611,6 +679,7 @@ def z = +y;  // declares the def variable z and sets it to positive y
 byte z = +2; //ERROR: cannot implicitly downcast an int to a byte
 ----
 
+[[unary-negative]]
 ==== Unary Negative
 
 Unary negative negates a numeric value using the minus operator.  Format starts with a minus followed by a numerical expression.
@@ -645,6 +714,7 @@ def z = -y;  // declares the def variable z and sets it to negative y
 byte z = -2; //ERROR: cannot implicitly downcast an int to a byte
 ----
 
+[[boolean-not]]
 ==== Boolean Not
 
 Boolean not will flip a boolean value from true to false or false to true using the bang operator.  The format is a bang operator followed by an expression.
@@ -665,6 +735,7 @@ boolean y = !x;     // declares the boolean variable y and sets it to the opposi
 def z = !y;         // declares the def variable z and sets it to the opposite of the boolean variable y
 ----
 
+[[bitwise-not]]
 ==== Bitwise Not
 
 Bitwise not will flip each bit of an integer type expression.  The format is the tilde operator followed by an expression.
@@ -699,10 +770,12 @@ def e;       // declares the def variable e
 e = ~d;      // sets e the negation of d
 ----
 
+[[cast]]
 ==== Cast
 
 The cast operator can be used to explicitly convert one type to another.  See casting [MARK] for more information.
 
+[[constructor]]
 ==== Constructor Call
 
 A constructor call is a special type of method call [MARK] used to allocate a reference type instance using the new operator.  The format is the new operator followed by a type, an opening parenthesis, arguments if any, and a closing parenthesis.  Arguments are a series of zero-to-many expressions delimited by commas.  Auto-boxing and auto-unboxing will be applied automatically for arguments passed into a constructor call.  See boxing and unboxing [MARK] for more information on this topic.  Constructor argument types can always be resolved at run-time; if appropriate type conversions (casting) cannot be applied an error will occur.  Once a reference type instance has been allocated, its members may be used as part of other expressions.
@@ -725,6 +798,7 @@ def e;                   // declares the def variable e
 e = new HashMap(m);      // sets e to a newly allocated HashMap using the constructor with a single argument m
 ----
 
+[[new-array]]
 ==== New Array
 
 An array type instance can be allocated using the new operator. The format starts with the new operator followed by the type followed by a series of opening and closing braces each containing an expression for the size of the dimension.
@@ -744,6 +818,7 @@ def[][] y = new def[5][5]; // declares a 2-dimensional def array variable y and 
                            // allocated 2-dimensional array where both dimensions have a size of 5
 ----
 
+[[multiplication]]
 ==== Multiplication
 
 Multiplies two numerical expressions.  Rules for resultant overflow and NaN values follow the Java specification.  The format is an expression, followed by the star operator, and a closing expression.
@@ -778,6 +853,7 @@ def z = x*y;      // declares the def variable z and sets it to the result of x 
 def a = z*x;      // declares the def variable a and sets it to the result of z multiplied by x (x is promoted to def at compile-time and double at run-time)
 ----
 
+[[division]]
 ==== Division
 
 Divides two numerical expressions.  Rules for NaN values and division by zero follow the Java specification.  Integer division will drop the remainder of the resultant value.  The format is an expression, followed by the slash operator, and a closing expression.
@@ -812,6 +888,7 @@ def z = x/y;      // declares the def variable z and sets it to the result of x 
 def a = z/x;      // declares the def variable a and sets it to the result of z divided by x (x is promoted to def at compile-time and double at run-time)
 ----
 
+[[remainder]]
 ==== Remainder
 
 Calculates the remainder for division between two numerical expressions.  Rules for NaN values and division by zero follow the Java specification.  The format is an expression, followed by the percent operator, and a closing expression.
@@ -846,6 +923,7 @@ def z = x%y;      // declares the def variable z and sets it to the remainder of
 def a = z%x;      // declares the def variable a and sets it to the remainder of z divided by x (x is promoted to def at compile-time and double at run-time)
 ----
 
+[[string-concatenation]]
 ==== String Concatenation
 
 Concatenates two expressions together as a single String where at least of one of the expressions is a String to begin with.  The format is an expression, followed by a plus operator, and a closing expression.
@@ -867,6 +945,7 @@ z = z + d;                 // sets the String variable z to the concatenation of
 d = "con" + x + y + "cat"; // sets the def variable d to the concatenation of String constant "con", x, y, and the String constant "cat"
 ----
 
+[[addition]]
 ==== Addition
 
 Adds two numerical expressions.  Rules for resultant overflow and NaN values follow the Java specification.  The format is an expression, followed by the plus operator, and a closing expression.
@@ -901,6 +980,7 @@ def z = x + y;      // declares the def variable z and sets it to the result of 
 def a = z + x;      // declares the def variable a and sets it to the result of z added to x (x is promoted to def at compile-time and double at run-time)
 ----
 
+[[subtraction]]
 ==== Subtraction
 
 Subtracts two numerical expressions.  Rules for resultant overflow and NaN values follow the Java specification.  The format is an expression, followed by the minus operator, and a closing expression.
@@ -935,6 +1015,7 @@ def z = x-y;      // declares the def variable z and sets it to the result of y 
 def a = z-x;      // declares the def variable a and sets it to the result of x subtracted from z (x is promoted to def at compile-time and double at run-time)
 ----
 
+[[left-shift]]
 ==== Left Shift
 
 Shifts lower order bits to higher order bits in the left-side expression by the distance specified in the right-side expression.  The format is an expression followed by two left-carrots, and a closing expression.
@@ -969,6 +1050,7 @@ def z = x << y;  // declares the def variable z and sets it to the result of x l
 def a = z << x;  // declares the def variable a and sets it to the result of z left shifted by x
 ----
 
+[[right-shift]]
 ==== Right Shift
 
 Shifts higher order bits to lower order bits in the left-side expression by the distance specified in the right-side expression.  Right shift will preserve the signed bit (highest order bit) as part of the result.  The format is an expression followed by two right-carrots, and a closing expression.
@@ -1003,6 +1085,7 @@ def z = x >> y;  // declares the def variable z and sets it to the result of x r
 def a = z >> x;  // declares the def variable a and sets it to the result of z right shifted by x
 ----
 
+[[unsigned-right-shift]]
 ==== Unsigned Right Shift
 
 Shifts higher order bits to lower order bits in the left-side expression by the distance specified in the right-side expression.  Unsigned right shift will not preserve the signed bit (highest order bit) as part of the result.  The format is an expression followed by three right-carrots, and a closing expression.
@@ -1037,6 +1120,7 @@ def z = x >> y;  // declares the def variable z and sets it to the result of x u
 def a = z >> x;  // declares the def variable a and sets it to the result of z unsigned right shifted by x
 ----
 
+[[greater-than]]
 ==== Greater Than
 
 Greater than compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a larger value than the right-side expression otherwise false.  The format is an expression, followed by the right angle operator, and a closing expression.
@@ -1071,6 +1155,7 @@ def z = y > 6.5;   // declares the def variable z and sets it to the result of y
 def a = y > x;     // declares the def variable a and sets it to the result of y greater than z (x is promoted to double at compile-time)
 ----
 
+[[greater-than-or-equal]]
 ==== Greater Than Or Equal
 
 Greater than or equal compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a larger value than or equal to the right-side expression otherwise false.  The format is an expression, followed by the right angle and equals operator, and a closing expression.
@@ -1105,6 +1190,7 @@ def z = y >= 6.5;   // declares the def variable z and sets it to the result of 
 def a = y >= x;     // declares the def variable a and sets it to the result of y greater than or equal to z (x is promoted to double at compile-time)
 ----
 
+[[less-than]]
 ==== Less Than
 
 Less than compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a smaller value than the right-side expression otherwise false.  The format is an expression, followed by the left angle operator, and a closing expression.
@@ -1139,6 +1225,7 @@ def z = y < 6.5;   // declares the def variable z and sets it to the result of y
 def a = y < x;     // declares the def variable a and sets it to the result of y less than z (x is promoted to double at compile-time)
 ----
 
+[[less-than-or-equal]]
 ==== Less Than Or Equal
 
 Less than or equal compares two numerical expressions where a resultant boolean value will be true if the left-side expression is a larger value than or equal to the right-side expression otherwise false.  The format is an expression, followed by the left angle and equals operator, and a closing expression.
@@ -1173,6 +1260,7 @@ def z = y <= 6.5;   // declares the def variable z and sets it to the result of 
 def a = y <= x;     // declares the def variable a and sets it to the result of y less than or equal to z (x is promoted to double at compile-time)
 ----
 
+[[instance-of]]
 ==== Instance Of
 
 The instanceof operator can be used to compare a variable's type to a specified reference type where a resultant boolean value is true if the variable type is the same as or a descendant of the specified reference type and false otherwise.  The format is an id, followed by the instanceof operator, and finished with a type.
@@ -1194,6 +1282,7 @@ boolean b = y instanceof Map;     // declares the boolean variable b and sets it
 boolean c = z instanceof List;    // declares the boolean variable c and sets it to true since z's type is a descendant of the type List
 ----
 
+[[equality-equals]]
 ==== Equality Equals
 
 Equality equals compares two expressions where a resultant boolean value is true if the two expressions are equal and false otherwise.  When reference types are compared using this operator the equivalent of the equals member method will be called against the first expression, where the second expression is the argument.  Though the equals member method is used for reference types, this operation will always be null-safe.  Valid comparisons are between boolean types, primitive numeric types, and reference types.  If a comparison is made that is not listed as one of the valid comparisons an error will occur.  The format is an expression, followed by the equals-equals operator, and finished with an expression.
@@ -1254,6 +1343,7 @@ result = null == dl;            // compares null to dl with a boolean result of 
 result = l1 == null;            // compares l1 to null with a boolean result of false
 ----
 
+[[equality-not-equals]]
 ==== Equality Not Equals
 
 Equality not equals compares two expressions where a resultant boolean value is true if the two expressions are not equal and false otherwise.  When reference types are compared using this operator the equivalent of the equals member method will be called against the first expression, where the second expression is the argument, with the resultant boolean being reversed.  Though the equals member method is used for reference types, this operation will always be null-safe.  Valid comparisons are between boolean types, primitive numeric types, and reference types.  If a comparison is made that is not listed as one of the valid comparisons an error will occur.  The format is an expression, followed by the bang-equals operator, and finished with an expression.
@@ -1314,6 +1404,7 @@ result = null != dl;            // compares null to dl with a boolean result of 
 result = l1 != null;            // compares null to l1 with a boolean result of true
 ----
 
+[[identity-equals]]
 ==== Identity Equals
 
 Identity equals compares two expressions where a resultant boolean value is true if the two expressions are equal and false otherwise.  Two primitive types are considered to be equal if they have the same value.  Two reference types are considered to be equal if they refer to the exact same instance in memory or are both null.  Valid comparisons are between boolean types, primitive numeric types, and reference types.  If a comparison is made that is not listed as one of the valid comparisons an error will occur.  The format is an expression, followed by the equals-equals-equals operator, and finished with an expression.
@@ -1375,6 +1466,7 @@ result = null === dl;           // compares null to dl with a boolean result of 
 result = l1 === null;           // compares null to l1 with a boolean result of false
 ----
 
+[[identity-not-equals]]
 ==== Identity Not Equals
 
 Identity not equals compares two expressions where a resultant boolean value is true if the two expressions are not equal and false otherwise.  Two primitive types are considered to be not equal if they have different values.  Two reference types are considered to be not equal if they refer to the different instances in memory or one is null and the other is not.  Valid comparisons are between boolean types, primitive numeric types, and reference types.  If a comparison is made that is not listed as one of the valid comparisons an error will occur.  The format is an expression, followed by the bang-equals-equals operator, and finished with an expression.
@@ -1436,6 +1528,7 @@ result = null !== dl;           // compares null to dl with a boolean result of 
 result = l1 !== null;           // compares null to l1 with a boolean result of true
 ----
 
+[[bitwise-and]]
 ==== Bitwise And
 
 Bitwise and will and together two integer type expressions.  The table below shows what each resultant bit will in the resultant integer type value be based on the corresponding bit in each integer type expression.
@@ -1478,6 +1571,7 @@ def e;          // declares the def variable e
 e = d & z;      // sets e to the result of d and z
 ----
 
+[[boolean-xor]]
 ==== Boolean Xor
 
 Boolean xor will xor together two boolean expressions.  The table below shows what the resultant boolean value will be based on the two boolean expressions.
@@ -1506,6 +1600,7 @@ boolean y = x ^ true; // declares the boolean variable y and sets it the result 
 def z = y ^ x;        // declares the def variable z and sets it to the result of y xor x
 ----
 
+[[bitwise-xor]]
 ==== Bitwise Xor
 
 Bitwise xor will xor together two integer type expressions.  The table below shows what each resultant bit will in the resultant integer type value be based on the corresponding bit in each integer type expression.
@@ -1548,6 +1643,7 @@ def e;          // declares the def variable e
 e = d ^ z;      // sets e to the result of d xor z
 ----
 
+[[bitwise-or]]
 ==== Bitwise Or
 
 Bitwise or will or together two integer type expressions.  The table below shows what each resultant bit will in the resultant integer type value be based on the corresponding bit in each integer type expression.
@@ -1590,6 +1686,7 @@ def e;          // declares the def variable e
 e = d | z;      // sets e to the result of d or z
 ----
 
+[[boolean-and]]
 ==== Boolean And
 
 Boolean and will and together two boolean expressions.  If the first expression is found to be false then it is known that the result will also be false, so evaluation of the second expression will be skipped.  The table below shows what the resultant boolean value will be based on the two boolean expressions.
@@ -1616,6 +1713,7 @@ boolean y = x && true; // declares the boolean variable y and sets it the result
 def z = y && x;        // declares the def variable z and sets it to the result of y and x
 ----
 
+[[boolean-or]]
 ==== Boolean Or
 
 Boolean or will or together two boolean expressions.  If the first expression is found to be true then it is known that the result will also be true, so evaluation of the second expression will be skipped.  The table below shows what the resultant boolean value will be based on the two boolean expressions.
@@ -1644,6 +1742,7 @@ boolean y = x || true; // declares the boolean variable y and sets it the result
 def z = y || x;        // declares the def variable z and sets it to the result of y or x
 ----
 
+[[conditional]]
 ==== Conditional
 
 A conditional operation consists of three expressions.  The first expression is evaluated with an expected boolean result type.  If the first expression evaluates to true then the second expression will be evaluated.  If the first expression evaluates to false then the third expression will be evaluated.  This can be used as a shortcut many different operations without requiring a full if/else branch.  Errors will occur if the first expression does not evaluate to a boolean type or if one of the second or third expression cannot be converted to a type appropriate for the expected result.  The format is an expression followed by a question-mark operator, another expression, a colon operator, and finishes with a final expression.
@@ -1687,6 +1786,7 @@ def z = x < 2 ? true : false;            // declares the def variable z and sets
                                          // so the second expression is evaluated for a result
 ----
 
+[[elvis]]
 ==== Elvis
 
 The elvis operator consists of two expressions.  If the first expression is a non-null value then the resultant value will be the evaluated first expression otherwise the resultant value will be the evaluated second expression.  This is typically used as a shortcut for a null check in a conditional.  An error will occur if the expected result is a primitive type.  The format is an expression, followed by the question-mark-colon operator, and finishes with an expression.
@@ -1706,10 +1806,12 @@ y = null;                     // sets y to null
 def z = y ?: new HashMap();   // declares the def variable z and sets it to a newly allocated HashMap since y is null
 ----
 
+[[assignment]]
 ==== Assignment
 
 Assignment can be used to assign a value to a variable.  See Variable Assignment [MARK] for more information.
 
+[[compound-assignment]]
 ==== Compound Assignment
 
 Compound assignment can be used as a shortcut for an assignment where a binary operation would occur between the variable/field as the left-side expression and a separate right-side expression.  The variable/field and right-side expression must be of appropriate types for the specific operation or an error will occur.  A downcast may be necessary for certain operations to be able to assign the result back into the variable/field and will happen implicitly.  The format is a variable/field, followed by one of the compound assignment operators, finished with an expression.
