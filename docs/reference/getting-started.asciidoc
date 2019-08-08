@@ -185,7 +185,7 @@ packages on Linux, install using Homebrew on macOS, or install using the MSI
 package installer on Windows. See <<install-elasticsearch>> for more information.
 
 [[getting-started-index]]
-=== Index some data into {es}
+== Index some data into {es}
 
 Before you can start experimenting with queries and aggregations, you need
 to add some data to an {es} index. {es} can ingest data that's formatted as JSON
@@ -299,504 +299,182 @@ This returns the document's JSON data in the `_source` field:
 }
 --------------------------------------------------
 
-[[getting-started-query]]
-=== Query {es}
+[[getting-started-search]]
+== Searching your data
 
-Let's now put something into our customer index. We'll index a simple customer document into the customer index, with an ID of 1 as follows:
+The {es} query language enables you to use a combination of query and filter
+criteria to search your data. You submit your query to the `_search`
+API in the body of an HTTP GET or POST request, and {es} returns a list of
+matching documents sorted by _relevance--how closely each document matches the
+query criteria. Filter criteria control whether or not a document is included
+in the search results, but have no impact on relevance scoring.
 
-[source,js]
---------------------------------------------------
-PUT /customer/_doc/1?pretty
-{
-  "name": "John Doe"
-}
---------------------------------------------------
-// CONSOLE
-
-And the response:
+To get a feel for how this works, submit a simple `match_all` query against
+the _customer_ index.
 
 [source,js]
 --------------------------------------------------
-{
-  "_index" : "customer",
-  "_type" : "_doc",
-  "_id" : "1",
-  "_version" : 1,
-  "result" : "created",
-  "_shards" : {
-    "total" : 2,
-    "successful" : 1,
-    "failed" : 0
-  },
-  "_seq_no" : 0,
-  "_primary_term" : 1
-}
---------------------------------------------------
-// TESTRESPONSE[s/"_seq_no" : \d+/"_seq_no" : $body._seq_no/ s/"_primary_term" : 1/"_primary_term" : $body._primary_term/]
-
-From the above, we can see that a new customer document was successfully created inside the customer index. The document also has an internal id of 1 which we specified at index time.
-
-It is important to note that Elasticsearch does not require you to explicitly create an index first before you can index documents into it. In the previous example, Elasticsearch will automatically create the customer index if it didn't already exist beforehand.
-
-Let's now retrieve that document that we just indexed:
-
-[source,js]
---------------------------------------------------
-GET /customer/_doc/1?pretty
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-And the response:
-
-[source,js]
---------------------------------------------------
-{
-  "_index" : "customer",
-  "_type" : "_doc",
-  "_id" : "1",
-  "_version" : 1,
-  "_seq_no" : 25,
-  "_primary_term" : 1,
-  "found" : true,
-  "_source" : { "name": "John Doe" }
-}
---------------------------------------------------
-// TESTRESPONSE[s/"_seq_no" : \d+/"_seq_no" : $body._seq_no/ s/"_primary_term" : 1/"_primary_term" : $body._primary_term/]
-
-Nothing out of the ordinary here other than a field, `found`, stating that we found a document with the requested ID 1 and another field, `_source`, which returns the full JSON document that we indexed from the previous step.
-
-
-
-[[getting-started-modify-data]]
-== Modifying Your Data
-
-Elasticsearch provides data manipulation and search capabilities in near real time. By default, you can expect a one second delay (refresh interval) from the time you index/update/delete your data until the time that it appears in your search results. This is an important distinction from other platforms like SQL wherein data is immediately available after a transaction is completed.
-
-[float]
-[[indexing-replacing-documents]]
-=== Indexing/Replacing Documents
-
-We've previously seen how we can index a single document. Let's recall that command again:
-
-[source,js]
---------------------------------------------------
-PUT /customer/_doc/1?pretty
-{
-  "name": "John Doe"
-}
---------------------------------------------------
-// CONSOLE
-
-Again, the above will index the specified document into the customer index, with the ID of 1. If we then executed the above command again with a different (or same) document, Elasticsearch will replace (i.e. reindex) a new document on top of the existing one with the ID of 1:
-
-[source,js]
---------------------------------------------------
-PUT /customer/_doc/1?pretty
-{
-  "name": "Jane Doe"
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-The above changes the name of the document with the ID of 1 from "John Doe" to "Jane Doe". If, on the other hand, we use a different ID, a new document will be indexed and the existing document(s) already in the index remains untouched.
-
-[source,js]
---------------------------------------------------
-PUT /customer/_doc/2?pretty
-{
-  "name": "Jane Doe"
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-The above indexes a new document with an ID of 2.
-
-When indexing, the ID part is optional. If not specified, Elasticsearch will generate a random ID and then use it to index the document. The actual ID Elasticsearch generates (or whatever we specified explicitly in the previous examples) is returned as part of the index API call.
-
-This example shows how to index a document without an explicit ID:
-
-[source,js]
---------------------------------------------------
-POST /customer/_doc?pretty
-{
-  "name": "Jane Doe"
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-Note that in the above case, we are using the `POST` verb instead of PUT since we didn't specify an ID.
-
-[[getting-started-update-documents]]
-=== Updating Documents
-
-In addition to being able to index and replace documents, we can also update documents. Note though that Elasticsearch does not actually do in-place updates under the hood. Whenever we do an update, Elasticsearch deletes the old document and then indexes a new document with the update applied to it in one shot.
-
-This example shows how to update our previous document (ID of 1) by changing the name field to "Jane Doe":
-
-[source,js]
---------------------------------------------------
-POST /customer/_update/1?pretty
-{
-  "doc": { "name": "Jane Doe" }
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-This example shows how to update our previous document (ID of 1) by changing the name field to "Jane Doe" and at the same time add an age field to it:
-
-[source,js]
---------------------------------------------------
-POST /customer/_update/1?pretty
-{
-  "doc": { "name": "Jane Doe", "age": 20 }
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-Updates can also be performed by using simple scripts. This example uses a script to increment the age by 5:
-
-[source,js]
---------------------------------------------------
-POST /customer/_update/1?pretty
-{
-  "script" : "ctx._source.age += 5"
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-In the above example, `ctx._source` refers to the current source document that is about to be updated.
-
-Elasticsearch provides the ability to update multiple documents given a query condition (like an `SQL UPDATE-WHERE` statement). See {ref}/docs-update-by-query.html[`docs-update-by-query` API]
-
-[[getting-started-delete-documents]]
-=== Deleting Documents
-
-Deleting a document is fairly straightforward. This example shows how to delete our previous customer with the ID of 2:
-
-[source,js]
---------------------------------------------------
-DELETE /customer/_doc/2?pretty
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-See the {ref}/docs-delete-by-query.html[`_delete_by_query` API] to delete all documents matching a specific query.
-It is worth noting that it is much more efficient to delete a whole index
-instead of deleting all documents with the Delete By Query API.
-
-[[getting-started-batch-processing]]
-=== Batch Processing
-
-In addition to being able to index, update, and delete individual documents, Elasticsearch also provides the ability to perform any of the above operations in batches using the {ref}/docs-bulk.html[`_bulk` API]. This functionality is important in that it provides a very efficient mechanism to do multiple operations as fast as possible with as few network roundtrips as possible.
-
-As a quick example, the following call indexes two documents (ID 1 - John Doe and ID 2 - Jane Doe) in one bulk operation:
-
-[source,js]
---------------------------------------------------
-POST /customer/_bulk?pretty
-{"index":{"_id":"1"}}
-{"name": "John Doe" }
-{"index":{"_id":"2"}}
-{"name": "Jane Doe" }
---------------------------------------------------
-// CONSOLE
-
-This example updates the first document (ID of 1) and then deletes the second document (ID of 2) in one bulk operation:
-
-[source,sh]
---------------------------------------------------
-POST /customer/_bulk?pretty
-{"update":{"_id":"1"}}
-{"doc": { "name": "John Doe becomes Jane Doe" } }
-{"delete":{"_id":"2"}}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-Note above that for the delete action, there is no corresponding source document after it since deletes only require the ID of the document to be deleted.
-
-The Bulk API does not fail due to failures in one of the actions. If a single action fails for whatever reason, it will continue to process the remainder of the actions after it. When the bulk API returns, it will provide a status for each action (in the same order it was sent in) so that you can check if a specific action failed or not.
-
-[[getting-started-explore-data]]
-== Exploring Your Data
-
-[float]
-=== Sample Dataset
-
-Now that we've gotten a glimpse of the basics, let's try to work on a more realistic dataset. I've prepared a sample of fictitious JSON documents of customer bank account information. Each document has the following schema:
-
-[source,js]
---------------------------------------------------
-{
-    "account_number": 0,
-    "balance": 16623,
-    "firstname": "Bradshaw",
-    "lastname": "Mckenzie",
-    "age": 29,
-    "gender": "F",
-    "address": "244 Columbus Place",
-    "employer": "Euron",
-    "email": "bradshawmckenzie@euron.com",
-    "city": "Hobucken",
-    "state": "CO"
-}
---------------------------------------------------
-// NOTCONSOLE
-
-For the curious, this data was generated using http://www.json-generator.com/[`www.json-generator.com/`], so please ignore the actual values and semantics of the data as these are all randomly generated.
-
-[float]
-=== Loading the Sample Dataset
-
-You can download the sample dataset (accounts.json) from https://github.com/elastic/elasticsearch/blob/master/docs/src/test/resources/accounts.json?raw=true[here]. Extract it to our current directory and let's load it into our cluster as follows:
-
-[source,sh]
---------------------------------------------------
-curl -H "Content-Type: application/json" -XPOST "localhost:9200/bank/_bulk?pretty&refresh" --data-binary "@accounts.json"
-curl "localhost:9200/_cat/indices?v"
---------------------------------------------------
-// NOTCONSOLE
-
-////
-This replicates the above in a document-testing friendly way but isn't visible
-in the docs:
-
-[source,js]
---------------------------------------------------
-GET /_cat/indices?v
---------------------------------------------------
-// CONSOLE
-// TEST[setup:bank]
-////
-
-And the response:
-
-[source,txt]
---------------------------------------------------
-health status index uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-yellow open   bank  l7sSYV2cQXmu6_4rJWVIww   5   1       1000            0    128.6kb        128.6kb
---------------------------------------------------
-// TESTRESPONSE[s/128.6kb/\\d+(\\.\\d+)?[mk]?b/]
-// TESTRESPONSE[s/l7sSYV2cQXmu6_4rJWVIww/.+/ non_json]
-
-Which means that we just successfully bulk indexed 1000 documents into the bank index.
-
-[[getting-started-search-API]]
-=== The Search API
-
-Now let's start with some simple searches. There are two basic ways to run searches: one is by sending search parameters through the {ref}/search-uri-request.html[REST request URI] and the other by sending them through the {ref}/search-request-body.html[REST request body]. The request body method allows you to be more expressive and also to define your searches in a more readable JSON format. We'll try one example of the request URI method but for the remainder of this tutorial, we will exclusively be using the request body method.
-
-The REST API for search is accessible from the `_search` endpoint. This example returns all documents in the bank index:
-
-[source,js]
---------------------------------------------------
-GET /bank/_search?q=*&sort=account_number:asc&pretty
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-Let's first dissect the search call. We are searching (`_search` endpoint) in the bank index, and the `q=*` parameter instructs Elasticsearch to match all documents in the index. The `sort=account_number:asc` parameter indicates to sort the results using the `account_number` field of each document in an ascending order. The `pretty` parameter, again, just tells Elasticsearch to return pretty-printed JSON results.
-
-And the response (partially shown):
-
-[source,js]
---------------------------------------------------
-{
-  "took" : 63,
-  "timed_out" : false,
-  "_shards" : {
-    "total" : 5,
-    "successful" : 5,
-    "skipped" : 0,
-    "failed" : 0
-  },
-  "hits" : {
-    "total" : {
-        "value": 1000,
-        "relation": "eq"
-    },
-    "max_score" : null,
-    "hits" : [ {
-      "_index" : "bank",
-      "_type" : "_doc",
-      "_id" : "0",
-      "sort": [0],
-      "_score" : null,
-      "_source" : {"account_number":0,"balance":16623,"firstname":"Bradshaw","lastname":"Mckenzie","age":29,"gender":"F","address":"244 Columbus Place","employer":"Euron","email":"bradshawmckenzie@euron.com","city":"Hobucken","state":"CO"}
-    }, {
-      "_index" : "bank",
-      "_type" : "_doc",
-      "_id" : "1",
-      "sort": [1],
-      "_score" : null,
-      "_source" : {"account_number":1,"balance":39225,"firstname":"Amber","lastname":"Duke","age":32,"gender":"M","address":"880 Holmes Lane","employer":"Pyrami","email":"amberduke@pyrami.com","city":"Brogan","state":"IL"}
-    }, ...
-    ]
-  }
-}
---------------------------------------------------
-// TESTRESPONSE[s/"took" : 63/"took" : $body.took/]
-// TESTRESPONSE[s/\.\.\./$body.hits.hits.2, $body.hits.hits.3, $body.hits.hits.4, $body.hits.hits.5, $body.hits.hits.6, $body.hits.hits.7, $body.hits.hits.8, $body.hits.hits.9/]
-
-As for the response, we see the following parts:
-
-* `took` – time in milliseconds for Elasticsearch to execute the search
-* `timed_out` – tells us if the search timed out or not
-* `_shards` – tells us how many shards were searched, as well as a count of the successful/failed searched shards
-* `hits` – search results
-* `hits.total` – an object that contains information about the total number of documents matching our search criteria
-** `hits.total.value` - the value of the total hit count (must be interpreted in the context of `hits.total.relation`).
-** `hits.total.relation` - whether `hits.total.value` is the exact hit count, in which case it is equal to `"eq"` or a
-                           lower bound of the total hit count (greater than or equals), in which case it is equal to `gte`.
-* `hits.hits` – actual array of search results (defaults to first 10 documents)
-* `hits.sort` - sort value of the sort key for each result (missing if sorting by score)
-* `hits._score` and `max_score` - ignore these fields for now
-
-The accuracy of `hits.total` is controlled by the request parameter `track_total_hits`, when set to true
-the request will track the total hits accurately (`"relation": "eq"`). It defaults to `10,000`
-which means that the total hit count is accurately tracked up to `10,000` documents.
-You can force an accurate count by setting `track_total_hits` to true explicitly.
-See the <<request-body-search-track-total-hits, request body>> documentation
-for more details.
-
-Here is the same exact search above using the alternative request body method:
-
-[source,js]
---------------------------------------------------
-GET /bank/_search
-{
-  "query": { "match_all": {} },
-  "sort": [
-    { "account_number": "asc" }
-  ]
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-The difference here is that instead of passing `q=*` in the URI, we provide a JSON-style query request body to the `_search` API. We'll discuss this JSON query in the next section.
-
-////
-Hidden response just so we can assert that it is indeed the same but don't have
-to clutter the docs with it:
-
-[source,js]
---------------------------------------------------
-{
-  "took" : 63,
-  "timed_out" : false,
-  "_shards" : {
-    "total" : 5,
-    "successful" : 5,
-    "skipped" : 0,
-    "failed" : 0
-  },
-  "hits" : {
-    "total" : {
-       "value": 1000,
-       "relation": "eq"
-    },
-    "max_score": null,
-    "hits" : [ {
-      "_index" : "bank",
-      "_type" : "_doc",
-      "_id" : "0",
-      "sort": [0],
-      "_score": null,
-      "_source" : {"account_number":0,"balance":16623,"firstname":"Bradshaw","lastname":"Mckenzie","age":29,"gender":"F","address":"244 Columbus Place","employer":"Euron","email":"bradshawmckenzie@euron.com","city":"Hobucken","state":"CO"}
-    }, {
-      "_index" : "bank",
-      "_type" : "_doc",
-      "_id" : "1",
-      "sort": [1],
-      "_score": null,
-      "_source" : {"account_number":1,"balance":39225,"firstname":"Amber","lastname":"Duke","age":32,"gender":"M","address":"880 Holmes Lane","employer":"Pyrami","email":"amberduke@pyrami.com","city":"Brogan","state":"IL"}
-    }, ...
-    ]
-  }
-}
---------------------------------------------------
-// TESTRESPONSE[s/"took" : 63/"took" : $body.took/]
-// TESTRESPONSE[s/\.\.\./$body.hits.hits.2, $body.hits.hits.3, $body.hits.hits.4, $body.hits.hits.5, $body.hits.hits.6, $body.hits.hits.7, $body.hits.hits.8, $body.hits.hits.9/]
-
-////
-
-It is important to understand that once you get your search results back, Elasticsearch is completely done with the request and does not maintain any kind of server-side resources or open cursors into your results. This is in stark contrast to many other platforms such as SQL wherein you may initially get a partial subset of your query results up-front and then you have to continuously go back to the server if you want to fetch (or page through) the rest of the results using some kind of stateful server-side cursor.
-
-[[getting-started-query-lang]]
-=== Introducing the Query Language
-
-Elasticsearch provides a JSON-style domain-specific language that you can use to execute queries. This is referred to as the {ref}/query-dsl.html[Query DSL]. The query language is quite comprehensive and can be intimidating at first glance but the best way to actually learn it is to start with a few basic examples.
-
-Going back to our last example, we executed this query:
-
-[source,js]
---------------------------------------------------
-GET /bank/_search
+GET /customer/_search
 {
   "query": { "match_all": {} }
 }
 --------------------------------------------------
 // CONSOLE
-// TEST[continued]
+// TEST
 
-Dissecting the above, the `query` part tells us what our query definition is and the `match_all` part is simply the type of query that we want to run. The `match_all` query is simply a search for all documents in the specified index.
-
-In addition to the `query` parameter, we also can pass other parameters to
-influence the search results. In the example in the section above we passed in
-`sort`, here we pass in `size`:
+Like the name implies, this search matches every document in the index. The
+response includes some statistics for the query and lists the first ten
+matching documents in the `hits` array.
 
 [source,js]
 --------------------------------------------------
-GET /bank/_search
 {
-  "query": { "match_all": {} },
-  "size": 1
+  "took" : 5,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 10,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "2",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "Jane Doe"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "LICsbmwBZcj6UWre1jDV",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "Jane Adair"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "1",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "John Doe"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "LYC2bmwBZcj6UWreczBF",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "Jane Adair"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "LoC2bmwBZcj6UWrenTCE",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "Jane Adair"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "L4C2bmwBZcj6UWresTDu",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "Jane Adair"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "MIC2bmwBZcj6UWretTDg",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "Jane Adair"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "MYC2bmwBZcj6UWreuTCb",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "Jane Adair"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "cid_2",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "John Doe"
+        }
+      },
+      {
+        "_index" : "customer",
+        "_type" : "_doc",
+        "_id" : "cid_1",
+        "_score" : 1.0,
+        "_source" : {
+          "name" : "John Q. Doe"
+        }
+      }
+    ]
+  }
 }
 --------------------------------------------------
-// CONSOLE
-// TEST[continued]
+// TESTRESPONSE
 
-Note that if `size` is not specified, it defaults to 10.
+[float]
+=== Specifying multiple query criteria
 
-This example does a `match_all` and returns documents 10 through 19:
+Things are more interesting when you start combining multiple query clauses.
+For example, instead of just getting a list of all of the customers with
+`match_all`, you could find all of the customers with the last name _Doe_ who
+are not named _John_.
+
+The simplest way to construct this compound query is to use a `bool` query. You
+can use a `must` clause to find the customers with the last name _Doe_, and
+a _must_not_ clause to filter out anyone named _John_.
 
 [source,js]
 --------------------------------------------------
-GET /bank/_search
+GET /customer/_search
 {
-  "query": { "match_all": {} },
-  "from": 10,
-  "size": 10
+  "query": {
+    "bool": {
+      "must" : {
+        "term" : { "name" : "doe" }
+      },
+      "must_not" : {
+        "term" : { "name" : "john" }
+      }
+    }
+  }
 }
 --------------------------------------------------
 // CONSOLE
-// TEST[continued]
+// TEST
 
-The `from` parameter (0-based) specifies which document index to start from and the `size` parameter specifies how many documents to return starting at the from parameter. This feature is useful when implementing paging of search results. Note that if `from` is not specified, it defaults to 0.
 
-This example does a `match_all` and sorts the results by account balance in descending order and returns the top 10 (default size) documents.
 
-[source,js]
---------------------------------------------------
-GET /bank/_search
-{
-  "query": { "match_all": {} },
-  "sort": { "balance": { "order": "desc" } }
-}
---------------------------------------------------
-// CONSOLE
-// TEST[continued]
-
-[[getting-started-search]]
-=== Executing Searches
+[float]
+=== Adding filter criteria
 
 Now that we have seen a few of the basic search parameters, let's dig in some more into the Query DSL. Let's first take a look at the returned document fields. By default, the full JSON document is returned as part of all searches. This is referred to as the source (`_source` field in the search hits). If we don't want the entire source document returned, we have the ability to request only a few fields from within source to be returned.
 
@@ -804,10 +482,9 @@ This example shows how to return two fields, `account_number` and `balance` (ins
 
 [source,js]
 --------------------------------------------------
-GET /bank/_search
+GET /customer/_search
 {
   "query": { "match_all": {} },
-  "_source": ["account_number", "balance"]
 }
 --------------------------------------------------
 // CONSOLE
