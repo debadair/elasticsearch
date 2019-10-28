@@ -1,5 +1,6 @@
 [[getting-started]]
 = Getting started with {es}
+:edit_url!:
 
 [partintro]
 --
@@ -8,10 +9,10 @@ REST APIs to store, search, and analyze data?
 
 Follow this getting started tutorial to:
 
-. Get an {es} cluster up and running
-. Index some sample documents
-. Search for documents using the {es} query language
-. Analyze the results using bucket and metrics aggregations
+. <<getting-started-install, Get an {es} cluster up and running>>
+. <<getting-started-index, Index some sample documents>>
+. <<getting-started-search, Search for documents>> using the {es} query language
+. <<getting-started-aggregations, Analyze the results>> using bucket and metrics aggregations
 
 
 Need more context?
@@ -199,6 +200,12 @@ you can  run {es} in a Docker container, install {es} using the DEB or RPM
 packages on Linux, install using Homebrew on macOS, or install using the MSI
 package installer on Windows. See <<install-elasticsearch>> for more information.
 
+[float]
+[[gs-next-index]]
+=== Next step
+
+<<getting-started-index, **Index some sample documents**>>
+
 [[getting-started-index]]
 == Index some documents
 
@@ -275,6 +282,8 @@ and shows the original source fields that were indexed.
 // TESTRESPONSE[s/"_seq_no" : \d+/"_seq_no" : $body._seq_no/ ]
 // TESTRESPONSE[s/"_primary_term" : \d+/"_primary_term" : $body._primary_term/]
 
+
+
 [float]
 [[getting-started-batch-processing]]
 === Indexing documents in bulk
@@ -338,6 +347,12 @@ yellow open   bank  l7sSYV2cQXmu6_4rJWVIww   5   1       1000            0    12
 --------------------------------------------------
 // TESTRESPONSE[s/128.6kb/\\d+(\\.\\d+)?[mk]?b/]
 // TESTRESPONSE[s/l7sSYV2cQXmu6_4rJWVIww/.+/ non_json]
+
+[float]
+[[gs-next-search]]
+=== Next step
+
+<<getting-started-search, **Search for documents**>> using the {es} query language
 
 [[getting-started-search]]
 == Start searching
@@ -524,6 +539,12 @@ GET /bank/_search
 --------------------------------------------------
 // TEST[continued]
 
+[float]
+[[gs-next-analyze]]
+=== Next step
+
+<<getting-started-aggregations, **Analyze the results**>> using bucket and metrics aggregations
+
 [[getting-started-aggregations]]
 == Analyze results with aggregations
 
@@ -684,6 +705,12 @@ aggregations for further analysis.
 
 The core analysis capabilities provided by aggregations enable advanced
 features such as using machine learning to detect anomalies. 
+
+[float]
+[[gs-next-next]]
+=== Next step
+
+<<getting-started-next-steps, **Where to go from here**>>
 
 [[getting-started-next-steps]]
 == Where to go from here
