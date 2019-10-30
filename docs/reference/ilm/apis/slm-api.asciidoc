@@ -10,9 +10,9 @@ See <<getting-started-snapshot-lifecycle-management,Manage the snapshot lifecycl
 [[slm-api-policy-endpoint]]
 === Snapshot policy APIs
 
-* <<slm-put-lifecycle,Create lifecycle policy>>
-* <<slm-get-lifecycle,Get lifecycle policy>>
-* <<slm-delete-lifecycle,Delete lifecycle policy>>
+* <<slm-api-put,Create lifecycle policy>>
+* <<slm-api-get,Get lifecycle policy>>
+* <<slm-api-delete,Delete lifecycle policy>>
 
 [float]
 [[slm-api-index-endpoint]]
@@ -26,13 +26,13 @@ See <<getting-started-snapshot-lifecycle-management,Manage the snapshot lifecycl
 === Snapshot operation management APIs
 
 * <<slm-get-status,Get SLM operation mode>>
-* <<slm-stats,Get global and policy-level action statistics>>
+* <<slm-get-stats,Get global and policy-level action statistics>>
 * <<slm-start,Start SLM>>
 * <<slm-stop,Stop SLM>>
 
-include::slm-api-put.asciidoc
-include::slm-api-get.asciidoc
-include::slm-api-delete.asciidoc
+include::slm-api-put.asciidoc[]
+include::slm-api-get.asciidoc[]
+include::slm-api-delete.asciidoc[]
 
 include::slm-api-execute.asciidoc[]
 include::slm-api-execute-retention.asciidoc[]
@@ -40,10 +40,10 @@ include::slm-api-execute-retention.asciidoc[]
 include::remove-policy-from-index.asciidoc[]
 include::retry-policy.asciidoc[]
 
-include::slm-get-status.asciidoc
-include::slm-api-stats.asciidoc
-include::slm-start-desc.asciidoc
-include::slm-stop.asciidoc
+include::slm-get-status.asciidoc[]
+include::slm-api-stats.asciidoc[]
+include::slm-start-desc.asciidoc[]
+include::slm-stop.asciidoc[]
 
 
 
