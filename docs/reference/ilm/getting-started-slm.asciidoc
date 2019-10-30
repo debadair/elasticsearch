@@ -1,7 +1,19 @@
 [role="xpack"]
 [testenv="basic"]
 [[getting-started-snapshot-lifecycle-management]]
-== Getting started with snapshot lifecycle management
+== Manage the snapshot lifecycle
+
+The Snapshot Lifecycle Management APIs enable you to automate the timing, frequency, and retention of snapshots. 
+Snapshot Lifecycle Management is related to <<index-lifecycle-management,Index Lifecycle Management>>, 
+but snapshot policies apply to multiple indices. 
+
+SLM policy management is split into three different CRUD APIs, a way to put or update
+policies, a way to retrieve policies, and a way to delete unwanted policies, as
+well as a separate API for immediately invoking a snapshot based on a policy.
+
+SLM can be stopped temporarily and restarted using the <<slm-stop,Stop SLM>> and
+<<slm-start,Start SLM>> APIs. To disable SLM's functionality entirely, set the
+cluster setting `xpack.slm.enabled` to `false` in elasticsearch.yml.
 
 Let's get started with snapshot lifecycle management (SLM) by working through a
 hands-on scenario. The goal of this example is to automatically back up {es}
@@ -12,6 +24,7 @@ amount of time and then deleted per a configured retention policy.
 [float]
 [[slm-and-security]]
 === Security and SLM
+
 Before starting, it's important to understand the privileges that are needed
 when configuring SLM if you are using the security plugin. There are two
 built-in cluster privileges that can be used to assist: `manage_slm` and

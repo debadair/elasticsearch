@@ -1,0 +1,39 @@
+[[slm-api-delete]]
+=== Delete snapshot lifecycle policy API
+++++
+<titleabbrev>Delete snapshot lifecycle policy</titleabbrev>
+++++
+
+Deletes an existing snapshot lifecycle policy.
+
+
+[[slm-api-delete-request]]
+==== {api-request-title}
+
+`DELETE /_slm/policy/<snapshot-lifecycle-policy-id>`
+
+
+[[slm-api-delete-desc]]
+==== {api-description-title}
+
+A policy can be deleted by issuing a delete request with the policy id. Note
+that this prevents any future snapshots from being taken, but does not cancel
+any currently ongoing snapshots or remove any previously taken snapshots.
+
+
+[[slm-api-delete-path-params]]
+==== {api-path-parms-title}
+
+`<snapshot-lifecycle-policy-id>`::
+(Required, string)
+ID of the snapshot lifecycle policy to delete.
+
+
+[[slm-api-delete-example]]
+==== {api-examples-title}
+
+[source,console]
+--------------------------------------------------
+DELETE /_slm/policy/daily-snapshots
+--------------------------------------------------
+// TEST[continued]
