@@ -37,9 +37,6 @@ include::slm-api-delete.asciidoc[]
 include::slm-api-execute.asciidoc[]
 include::slm-api-execute-retention.asciidoc[]
 
-include::remove-policy-from-index.asciidoc[]
-include::retry-policy.asciidoc[]
-
 include::slm-get-status.asciidoc[]
 include::slm-api-stats.asciidoc[]
 include::slm-start-desc.asciidoc[]
