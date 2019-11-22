@@ -1,12 +1,12 @@
 [[slm-start]]
-=== Start Snapshot Lifecycle Management API
+=== Start snapshot lifecycle management API
 
 [subs="attributes"]
 ++++
-<titleabbrev>Start Snapshot Lifecycle Management</titleabbrev>
+<titleabbrev>Start snapshot lifecycle management</titleabbrev>
 ++++
 
-Start the Snapshot Lifecycle Management (SLM) plugin.
+Turn on snapshot lifecycle management (SLM).
 
 [[slm-start-request]]
 ==== {api-request-title}
@@ -16,23 +16,25 @@ Start the Snapshot Lifecycle Management (SLM) plugin.
 [[slm-start-desc]]
 ==== {api-description-title}
 
-Starts the SLM plugin if it is currently stopped. SLM is started
-automatically when the cluster is formed. Restarting SLM is only
-necessary if it has been stopped using the <<slm-stop, Stop SLM API>>.
+Starts the SLM plugin if it is not running. 
+SLM starts automatically when a cluster is formed. 
+Manually starting SLM is only necessary if it has been stopped using the <<slm-stop>>.
 
 ==== Request Parameters
 
 include::{docdir}/rest-api/common-parms.asciidoc[tag=timeoutparms]
 
-==== Authorization
+[[slm-delete-lifecycle-prereqs]]
+==== {api-prereq-title}
 
-You must have the `manage_slm` cluster privilege to use this API.
-For more information, see <<security-privileges>>.
+* If the {es} {security-features} are enabled, you must have the `manage_slm`
+cluster privilege to use this API. For more information, see
+<<security-privileges>>.
 
 [[slm-start-example]]
 ==== {api-examples-title}
 
-Starts the SLM plugin.
+Start the SLM plugin:
 
 [source,console]
 --------------------------------------------------
@@ -40,7 +42,7 @@ POST _slm/start
 --------------------------------------------------
 // TEST[continued]
 
-If the request succeeds, you receive the following result:
+If successful, this request returns:
 
 [source,console-result]
 --------------------------------------------------

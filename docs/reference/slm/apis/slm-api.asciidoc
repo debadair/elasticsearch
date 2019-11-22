@@ -1,0 +1,58 @@
+[role="xpack"]
+[testenv="basic"]
+[[snapshot-lifecycle-management-api]]
+== {slm-cap} API
+
+You use the following APIs to set up policies to automatically take snapshots and 
+control how long they are retained. 
+For more information about snapshot lifecycle management (SLM), see <<snapshot-lifecycle-management>>.
+
+[float]
+[[slm-api-policy-endpoint]]
+=== Policy management APIs
+
+* <<slm-put,Create lifecycle policy>>
+* <<slm-get,Get lifecycle policy>>
+* <<slm-delete,Delete lifecycle policy>>
+
+[float]
+[[slm-api-index-endpoint]]
+=== Snapshot management APIs
+
+* <<slm-execute,Execute snapshot policy>>
+* <<slm-execute-retention,Delete expired snapshots according to retention policy>>
+
+[float]
+[[slm-api-management-endpoint]]
+=== Operation management APIs
+
+* <<slm-get-status,Get SLM operation mode>>
+* <<slm-get-stats,Get global and policy-level action statistics>>
+* <<slm-start,Start SLM>>
+* <<slm-stop,Stop SLM>>
+
+include::slm-put.asciidoc[]
+include::slm-get.asciidoc[]
+include::slm-delete.asciidoc[]
+
+include::slm-execute.asciidoc[]
+include::slm-execute-retention.asciidoc[]
+
+include::slm-get-status.asciidoc[]
+include::slm-stats.asciidoc[]
+include::slm-start-desc.asciidoc[]
+include::slm-stop.asciidoc[]
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,12 +1,12 @@
 [[slm-get-status]]
-=== Get Snapshot Lifecycle Management status API
+=== Get snapshot lifecycle management status API
 
 [subs="attributes"]
 ++++
-<titleabbrev>Get Snapshot Lifecycle Management status</titleabbrev>
+<titleabbrev>Get snapshot lifecycle management status</titleabbrev>
 ++++
 
-Retrieves the current Snapshot Lifecycle Management (SLM) status.
+Retrieves the status of snapshot lifecycle management (SLM).
 
 [[slm-get-status-request]]
 ==== {api-request-title}
@@ -16,24 +16,27 @@ Retrieves the current Snapshot Lifecycle Management (SLM) status.
 [[slm-get-status-desc]]
 ==== {api-description-title}
 
-Returns the status of the SLM plugin. The `operation_mode` field in the
-response shows one of three states: `STARTED`, `STOPPING`,
-or `STOPPED`. You can change the status of the SLM plugin with the
-<<slm-start, Start SLM>> and <<slm-stop, Stop SLM>> APIs.
+Returns the status of the SLM plugin. 
+The `operation_mode` field in the response shows one of three states: 
+`STARTED`, `STOPPING`, or `STOPPED`. 
+You can change the status of the SLM plugin with the
+<<slm-start, start SLM>> and <<slm-stop, stop SLM>> APIs.
 
 ==== Request Parameters
 
 include::{docdir}/rest-api/common-parms.asciidoc[tag=timeoutparms]
 
-==== Authorization
+[[slm-get-status-prereqs]]
+==== {api-prereq-title}
 
-You must have the `manage_slm` or `read_slm` or both cluster privileges to use this API.
+* If the {es} {security-features} are enabled, you must have the 
+`manage_slm` or `read_slm` cluster privileges to use this API. 
 For more information, see <<security-privileges>>.
 
 [[slm-get-status-example]]
 ==== {api-examples-title}
 
-Gets the SLM plugin status.
+Get the SLM plugin status:
 
 [source,console]
 --------------------------------------------------

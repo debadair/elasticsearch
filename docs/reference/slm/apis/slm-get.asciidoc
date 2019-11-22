@@ -1,46 +1,71 @@
-[[slm-api-get]]
+[[slm-get]]
 === Get snapshot lifecycle policy API
 ++++
 <titleabbrev>Get snapshot lifecycle policy</titleabbrev>
 ++++
 
-Returns information
-about one or more snapshot lifecycle policies.
+Retrieves information about one or more snapshot lifecycle policies.
 
 
-[[slm-api-get-request]]
+[[slm-get-request]]
 ==== {api-request-title}
 
-`GET /_slm/policy/<snapshot-lifecycle-policy-id>`
+`GET /_slm/policy/<policy-id>`
 
 `GET /_slm/policy/`
 
+[[slm-get-lifecycle-prereqs]]
+==== {api-prereq-title}
 
-[[slm-api-get-desc]]
+* If the {es} {security-features} are enabled, you must have the `manage_slm`
+cluster privilege to use this API. For more information, see
+<<security-privileges>>.
+
+[[slm-get-desc]]
 ==== {api-description-title}
 
-Use the snapshot lifecycle policy API
-to retrieve information
-about one or more snapshot lifecycle policies.
-The API response also includes information
-about the latest successful and failed attempts
-to create automatic snapshots.
+Returns the specified policy definition and 
+information about the latest successful and failed attempts to create snapshots. 
+Includes the policy version and last modified date, 
+If no policy is specified, returns all defined policies.
 
-[[slm-api-get-path-params]]
+[[slm-get-path-params]]
 ==== {api-path-parms-title}
 
-`<snapshot-lifecycle-policy-id>`::
+`<policy-id>`::
 (Optional, string)
-Comma-separated list of snapshot lifecycle policy IDs
-to retrieve.
+Comma-separated list of snapshot lifecycle policy IDs.
 
-
-[[slm-api-get-example]]
+[[slm-get-example]]
 ==== {api-examples-title}
 
-
-[[slm-api-get-specific-ex]]
+[[slm-get-specific-ex]]
 ===== Get a specific policy
+
+////
+[source,console]
+--------------------------------------------------
+PUT /_slm/policy/daily-snapshots
+{
+  "schedule": "0 30 1 * * ?", <1>
+  "name": "<daily-snap-{now/d}>", <2>
+  "repository": "my_repository", <3>
+  "config": { <4>
+    "indices": ["data-*", "important"], <5>
+    "ignore_unavailable": false,
+    "include_global_state": false
+  },
+  "retention": { <6>
+    "expire_after": "30d", <7>
+    "min_count": 5, <8>
+    "max_count": 50 <9>
+  }
+}
+--------------------------------------------------
+// TEST[setup:setup-repository]
+////
+
+Get the `daily-snapshots` policy:
 
 [source,console]
 --------------------------------------------------
@@ -48,7 +73,7 @@ GET /_slm/policy/daily-snapshots?human
 --------------------------------------------------
 // TEST[continued]
 
-The API returns the following response:
+This request returns the following response:
 
 [source,console-result]
 --------------------------------------------------
@@ -90,7 +115,7 @@ The API returns the following response:
 <3> The next time this policy will be executed.
 
 
-[[slm-api-get-all-ex]]
+[[slm-get-all-ex]]
 ===== Get all policies
 
 [source,console]

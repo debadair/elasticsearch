@@ -1,0 +1,58 @@
+[[slm-stop]]
+=== Stop snapshot lifecycle management API
+
+[subs="attributes"]
+++++
+<titleabbrev>Stop snapshot lifecycle management</titleabbrev>
+++++
+
+Turn off  snapshot lifecycle management (SLM).
+
+[[slm-stop-request]]
+==== {api-request-title}
+
+`POST /_slm/stop`
+
+[[slm-stop-desc]]
+==== {api-description-title}
+
+Halts all snapshot lifecycle management operations and stops the SLM plugin.
+This is useful when you are performing maintenance on the cluster and need to
+prevent SLM from performing any actions on your indices. 
+Stopping SLM does not stop any snapshots that are in progress.
+You can manually trigger snapshots with the <<slm-api-execute>> even if SLM is stopped.
+
+Returns as soon as the request is acknowledged, but 
+the plugin might continue to run until in-progress operations complete and it can be safely stopped. 
+Use the  <<slm-get-status>> to see if SLM is running. 
+
+==== Request Parameters
+
+include::{docdir}/rest-api/common-parms.asciidoc[tag=timeoutparms]
+
+[[slm-delete-lifecycle-prereqs]]
+==== {api-prereq-title}
+
+* If the {es} {security-features} are enabled, you must have the `manage_slm`
+cluster privilege to use this API. For more information, see
+<<security-privileges>>.
+
+[[slm-stop-example]]
+==== {api-examples-title}
+
+Stops the SLM plugin.
+
+[source,console]
+--------------------------------------------------
+POST _slm/stop
+--------------------------------------------------
+// TEST[continued]
+
+If successful, this request returns:
+
+[source,console-result]
+--------------------------------------------------
+{
+  "acknowledged": true
+}
+--------------------------------------------------
