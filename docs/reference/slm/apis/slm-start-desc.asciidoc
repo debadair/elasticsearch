@@ -40,7 +40,6 @@ Start the SLM plugin:
 --------------------------------------------------
 POST _slm/start
 --------------------------------------------------
-// TEST[continued]
 
 If successful, this request returns:
 

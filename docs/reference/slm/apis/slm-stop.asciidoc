@@ -46,7 +46,6 @@ Stops the SLM plugin.
 --------------------------------------------------
 POST _slm/stop
 --------------------------------------------------
-// TEST[continued]
 
 If successful, this request returns:
 
