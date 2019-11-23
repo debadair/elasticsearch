@@ -1,27 +1,26 @@
-[[slm-put]]
+[[slm-api-put-policy]]
 === Put snapshot lifecycle policy API
 ++++
-<titleabbrev>Put snapshot lifecycle policy</titleabbrev>
+<titleabbrev>Put policy</titleabbrev>
 ++++
 
 Creates or updates a snapshot lifecycle policy.
 
 
-[[slm-put-request]]
+[[slm-api-put-request]]
 ==== {api-request-title}
 
 `PUT /_slm/policy/<snapshot-lifecycle-policy-id>`
 
-
-[[slm-put-prereqs]]
+[[slm-api-put-prereqs]]
 ==== {api-prereq-title}
 
 * If the {es} {security-features} are enabled, you must have the 
-`manage_slm` cluster privilege and the `manage` <<privileges-list-indices,index privilege>> 
+`manage_slm` cluster privilege and the `manage` index privilege
 for any included indices to use this API. 
 For more information, see <<security-privileges>>.
 
-[[slm-put-desc]]
+[[slm-api-put-desc]]
 ==== {api-description-title}
 
 Use the put snapshot lifecycle policy API
@@ -31,7 +30,7 @@ If the policy already exists,
 this request increments the policy's version.
 Only the latest version of a policy is stored.
 
-[[slm-put-path-params]]
+[[slm-api-put-path-params]]
 ==== {api-path-parms-title}
 
 `<snapshot-lifecycle-policy-id>`::
@@ -39,12 +38,12 @@ Only the latest version of a policy is stored.
 ID for the snapshot lifecycle policy
 you want to create or update.
 
-[[slm-put-query-params]]
+[[slm-api-put-query-params]]
 ==== {api-query-parms-title}
 
 include::{docdir}/rest-api/common-parms.asciidoc[tag=timeoutparms]
 
-[[slm-put-request-body]]
+[[slm-api-put-request-body]]
 ==== {api-request-body-title}
 
 `schedule`::
@@ -141,7 +140,7 @@ Minimum number of snapshots to retain,
 even if the snapshots have expired.
 --
 
-[[slm-put-example]]
+[[slm-api-put-example]]
 ==== {api-examples-title}
 
 Create a `daily-snapshots` lifecycle policy:

@@ -1,4 +1,4 @@
-[[slm-get-status]]
+[[slm-api-get-status]]
 === Get snapshot lifecycle management status API
 
 [subs="attributes"]
@@ -8,32 +8,32 @@
 
 Retrieves the status of snapshot lifecycle management (SLM).
 
-[[slm-get-status-request]]
+[[slm-api-get-status-request]]
 ==== {api-request-title}
 
 `GET /_slm/status`
 
-[[slm-get-status-desc]]
+[[slm-api-get-status-desc]]
 ==== {api-description-title}
 
 Returns the status of the SLM plugin. 
 The `operation_mode` field in the response shows one of three states: 
 `STARTED`, `STOPPING`, or `STOPPED`. 
-You can change the status of the SLM plugin with the
-<<slm-start, start SLM>> and <<slm-stop, stop SLM>> APIs.
+You halt and restart the SLM plugin with the
+<<slm-api-stop, stop>> and <<slm-api-start, start>>  APIs.
 
 ==== Request Parameters
 
 include::{docdir}/rest-api/common-parms.asciidoc[tag=timeoutparms]
 
-[[slm-get-status-prereqs]]
+[[slm-api-get-status-prereqs]]
 ==== {api-prereq-title}
 
 * If the {es} {security-features} are enabled, you must have the 
 `manage_slm` or `read_slm` cluster privileges to use this API. 
 For more information, see <<security-privileges>>.
 
-[[slm-get-status-example]]
+[[slm-api-get-status-example]]
 ==== {api-examples-title}
 
 Get the SLM plugin status:

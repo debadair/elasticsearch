@@ -1,4 +1,4 @@
-[[slm-execute-lifecycle]]
+[[slm-api-execute-lifecycle]]
 === Execute snapshot lifecycle policy API
 ++++
 <titleabbrev>Execute snapshot lifecycle policy</titleabbrev>
@@ -7,13 +7,19 @@
 Immediately creates a snapshot according to the lifecycle policy, 
 without waiting for the scheduled time.
 
-[[slm-execute-lifecycle-request]]
+[[slm-api-execute-lifecycle-request]]
 ==== {api-request-title}
 
 `PUT /_slm/policy/<snapshot-lifecycle-policy-id>/_execute`
 
+[[slm-api-execute-lifecycle-prereqs]]
+==== {api-prereq-title}
 
-[[slm-execute-lifecycle-desc]]
+* If the {es} {security-features} are enabled, you must have the `manage_slm`
+cluster privilege to use this API. For more information, see
+<<security-privileges>>.
+
+[[slm-api-execute-lifecycle-desc]]
 ==== {api-description-title}
 
 Manually applies the snapshot policy to immediately create a snapshot. 
@@ -21,14 +27,14 @@ The snapshot policy is normally applied according to its schedule,
 but you might want to manually execute a policy before performing an upgrade
 or other maintenance. 
 
-[[slm-execute-lifecycle-path-params]]
+[[slm-api-execute-lifecycle-path-params]]
 ==== {api-path-parms-title}
 
 `<policy-id>`::
 (Required, string)
 ID of the snapshot lifecycle policy to execute.
 
-[[slm-execute-lifecycle-example]]
+[[slm-api-execute-lifecycle-example]]
 ==== {api-examples-title}
 
 To take an immediate snapshot according to the `daily-snapshots` policy:
@@ -52,4 +58,4 @@ If successful, this request returns the generated snapshot name:
 The snapshot is taken in the background. 
 You can use the<<modules-snapshots,snapshot APIs>> to monitor the status of the snapshot.
 
-To see the status of a policy's most recent snapshot, you can use the <<slm-get, get SLM policy API>>.
+To see the status of a policy's most recent snapshot, you can use the <<slm-api-get-policy>>.

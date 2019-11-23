@@ -11,25 +11,25 @@ For more information about snapshot lifecycle management (SLM), see <<snapshot-l
 [[slm-api-policy-endpoint]]
 === Policy management APIs
 
-* <<slm-put,Create lifecycle policy>>
-* <<slm-get,Get lifecycle policy>>
-* <<slm-delete,Delete lifecycle policy>>
+* <<slm-api-put-policy,Create lifecycle policy>>
+* <<slm-api-get-policy,Get lifecycle policy>>
+* <<slm-api-delete-policy,Delete lifecycle policy>>
 
 [float]
 [[slm-api-index-endpoint]]
 === Snapshot management APIs
 
-* <<slm-execute,Execute snapshot policy>>
-* <<slm-execute-retention,Delete expired snapshots according to retention policy>>
+* <<slm-api-execute-lifecycle,Execute snapshot lifecycle policy>> (take snapshots)
+* <<slm-api-execute-retention,Execute snapshot retention policy>> (delete expired snapshots)
 
 [float]
 [[slm-api-management-endpoint]]
 === Operation management APIs
 
-* <<slm-get-status,Get SLM operation mode>>
-* <<slm-get-stats,Get global and policy-level action statistics>>
-* <<slm-start,Start SLM>>
-* <<slm-stop,Stop SLM>>
+* <<slm-api-get-status,Get SLM status>>
+* <<slm-api-get-stats,Get global and policy-level action statistics>>
+* <<slm-api-start,Start SLM>>
+* <<slm-api-stop,Stop SLM>>
 
 include::slm-put.asciidoc[]
 include::slm-get.asciidoc[]

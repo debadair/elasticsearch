@@ -1,4 +1,4 @@
-[[slm-start]]
+[[slm-api-start]]
 === Start snapshot lifecycle management API
 
 [subs="attributes"]
@@ -8,30 +8,30 @@
 
 Turn on snapshot lifecycle management (SLM).
 
-[[slm-start-request]]
+[[slm-api-start-request]]
 ==== {api-request-title}
 
 `POST /_slm/start`
 
-[[slm-start-desc]]
-==== {api-description-title}
-
-Starts the SLM plugin if it is not running. 
-SLM starts automatically when a cluster is formed. 
-Manually starting SLM is only necessary if it has been stopped using the <<slm-stop>>.
-
-==== Request Parameters
-
-include::{docdir}/rest-api/common-parms.asciidoc[tag=timeoutparms]
-
-[[slm-delete-lifecycle-prereqs]]
+[[slm-api-start-prereqs]]
 ==== {api-prereq-title}
 
 * If the {es} {security-features} are enabled, you must have the `manage_slm`
 cluster privilege to use this API. For more information, see
 <<security-privileges>>.
 
-[[slm-start-example]]
+[[slm-api-start-desc]]
+==== {api-description-title}
+
+Starts the SLM plugin if it is not running. 
+SLM starts automatically when a cluster is formed. 
+Manually starting SLM is only necessary if it has been stopped using the <<slm-api-stop>>.
+
+==== Request Parameters
+
+include::{docdir}/rest-api/common-parms.asciidoc[tag=timeoutparms]
+
+[[slm-api-start-example]]
 ==== {api-examples-title}
 
 Start the SLM plugin:

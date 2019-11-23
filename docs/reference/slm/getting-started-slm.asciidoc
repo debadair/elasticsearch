@@ -82,7 +82,7 @@ PUT /_snapshot/my_repository
 Now that we have a repository in place, we can create a policy to automatically
 take snapshots. Policies are written in JSON and will define when to take
 snapshots, what the snapshots should be named, and which indices should be
-included, among other things.  We'll use the <<slm-api-put,Put Policy>> API
+included, among other things.  We'll use the <<slm-api-put-policy>> API
 to create the policy.
 
 When configurating a policy, retention can also optionally be configured. See
@@ -137,7 +137,7 @@ special cases, such as if one of the specified indices cannot be found.
 While snapshots taken by SLM policies can be viewed through the standard snapshot
 API, SLM also keeps track of policy successes and failures in ways that are a bit
 easier to use to make sure the policy is working.  Once a policy has executed at
-least once, when you view the policy using the <<slm-api-get,Get Policy API>>, 
+least once, when you view the policy using the <<slm-api-get-policy>>, 
 some metadata will be returned indicating whether the snapshot was sucessfully 
 initiated or not.
 

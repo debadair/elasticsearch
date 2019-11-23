@@ -1,30 +1,30 @@
-[[slm-execute-retention]]
-=== Execute snapshot lifecycle retention API
+[[slm-api-execute-retention]]
+=== Execute snapshot retention policy API
 ++++
-<titleabbrev>Execute snapshot lifecycle retention</titleabbrev>
+<titleabbrev>Execute snapshot retention policy</titleabbrev>
 ++++
 
 Deletes any snapshots that are expired according to the policy's retention rules.
 
-[[slm-execute-retention-request]]
+[[slm-api-execute-retention-request]]
 ==== {api-request-title}
 
 `POST /_slm/_execute_retention`
 
-[[slm-execute-retention-prereqs]]
+[[slm-api-execute-retention-prereqs]]
 ==== {api-prereq-title}
 
 * If the {es} {security-features} are enabled, you must have the `manage_slm`
 cluster privilege to use this API. For more information, see
 <<security-privileges>>.
 
-[[slm-execute-retention-desc]]
+[[slm-api-execute-retention-desc]]
 ==== {api-description-title}
 
 Manually applies the retention policy to force immediate removal of expired snapshots. 
 The retention policy is normally applied according to its schedule.
 
-[[slm-execute-retention-example]]
+[[slm-api-execute-retention-example]]
 ==== {api-examples-title}
 
 To force removal of expired snapshots:
