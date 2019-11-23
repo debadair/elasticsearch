@@ -1,0 +1,21 @@
+[role="xpack"]
+[testenv="basic"]
+[[snapshot-lifecycle-management]]
+= Managing the snapshot lifecycle
+
+[partintro]
+--
+You can set up snapshot lifecycle policies to automate the timing, frequency, and retention of snapshots. 
+Snapshot policies can apply to multiple indices. 
+
+Like ILM, snapshot lifecycle management (SLM) is supported by a set of 
+<<snapshot-lifecycle-management-api, CRUD APIs>>
+that enable you to manage snapshot lifecycle policies. 
+You can also manually trigger a snapshot policy and start and stop SLM.  
+
+To disable SLM entirely, set `xpack.slm.enabled` to `false` in `elasticsearch.yml`.
+
+--
+include::getting-started-slm.asciidoc[]
+
+include::slm-retention.asciidoc[]
