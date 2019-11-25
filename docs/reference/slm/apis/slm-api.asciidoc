@@ -40,7 +40,7 @@ include::slm-execute-retention.asciidoc[]
 
 include::slm-get-status.asciidoc[]
 include::slm-stats.asciidoc[]
-include::slm-start-desc.asciidoc[]
+include::slm-start.asciidoc[]
 include::slm-stop.asciidoc[]
 
 
