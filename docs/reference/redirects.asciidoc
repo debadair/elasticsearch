@@ -1062,3 +1062,27 @@ See <<snapshots-restore-snapshot>>.
 
 See <<snapshots-register-repository>>.
 
+[role="exclude",id="slm-api-delete"]
+=== SLM delete policy API
+
+See <<slm-api-delete-policy>>.
+
+[role="exclude",id="slm-api-execute"]
+=== SLM execute lifecycle API
+
+See <<slm-api-execute-lifecycle>>.
+
+[role="exclude",id="slm-api-get"]
+=== SLM get policy API
+
+See <<slm-api-get-policy>>.
+
+[role="exclude",id="slm-get-stats"]
+=== SLM get stats API
+
+See <<slm-api-get-stats>>.
+
+[role="exclude",id="slm-api-put"]
+=== SLM put policy API
+
+See <<slm-api-put-policy>>.
