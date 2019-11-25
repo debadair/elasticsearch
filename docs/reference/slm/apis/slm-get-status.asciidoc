@@ -38,6 +38,13 @@ For more information, see <<security-privileges>>.
 
 Get the SLM plugin status:
 
+////
+[source,console]
+--------------------------------------------------
+POST _slm/start
+--------------------------------------------------
+////
+
 [source,console]
 --------------------------------------------------
 GET _slm/status
