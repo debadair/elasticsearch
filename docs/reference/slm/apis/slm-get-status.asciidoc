@@ -36,14 +36,30 @@ For more information, see <<security-privileges>>.
 [[slm-api-get-status-example]]
 ==== {api-examples-title}
 
-Get the SLM plugin status:
-
 ////
 [source,console]
 --------------------------------------------------
-POST _slm/start
+PUT /_slm/policy/daily-snapshots
+{
+  "schedule": "0 30 1 * * ?", <1>
+  "name": "<daily-snap-{now/d}>", <2>
+  "repository": "my_repository", <3>
+  "config": { <4>
+    "indices": ["data-*", "important"], <5>
+    "ignore_unavailable": false,
+    "include_global_state": false
+  },
+  "retention": { <6>
+    "expire_after": "30d", <7>
+    "min_count": 5, <8>
+    "max_count": 50 <9>
+  }
+}
 --------------------------------------------------
+// TEST[setup:setup-repository]
 ////
+
+Get the SLM plugin status:
 
 [source,console]
 --------------------------------------------------
