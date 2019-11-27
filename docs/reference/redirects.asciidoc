@@ -1051,3 +1051,13 @@ See <<rollup-put-job-api-request-body>>.
 === Snapshot module
 
 See <<snapshot-restore>>.
+
+[role="exclude",id="restore-snapshot"]
+=== Restore snapshot
+
+See <<snapshots-restore-snapshot>>.
+
+[role="exclude",id="snapshots-repositories"]
+=== Snapshot repositories
+
+See <<snapshots-register-repository>>.
