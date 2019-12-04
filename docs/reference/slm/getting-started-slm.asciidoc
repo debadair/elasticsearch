@@ -1,7 +1,7 @@
 [role="xpack"]
 [testenv="basic"]
 [[getting-started-snapshot-lifecycle-management]]
-== Configure snapshot lifecycle policies
+=== Set up a snapshot lifecycle policy
 
 Let's get started with snapshot lifecycle management (SLM) by working through a
 hands-on scenario. The goal of this example is to automatically back up {es}
@@ -10,54 +10,8 @@ time. Once these snapshots have been created, they are kept for a configured
 amount of time and then deleted per a configured retention policy.
 
 [float]
-[[slm-and-security]]
-=== Security and SLM
-
-Before starting, it's important to understand the privileges that are needed
-when configuring SLM if you are using the security plugin. There are two
-built-in cluster privileges that can be used to assist: `manage_slm` and
-`read_slm`. It's also good to note that the `cluster:admin/snapshot/*`
-permission allows taking and deleting snapshots even for indices the role may
-not have access to.
-
-An example of configuring an administrator role for SLM follows:
-
-[source,console]
------------------------------------
-POST /_security/role/slm-admin
-{
-  "cluster": ["manage_slm", "cluster:admin/snapshot/*"],
-  "indices": [
-    {
-      "names": [".slm-history-*"],
-      "privileges": ["all"]
-    }
-  ]
-}
------------------------------------
-// TEST[skip:security is not enabled here]
-
-Or, for a read-only role that can retrieve policies (but not update, execute, or
-delete them), as well as only view the history index:
-
-[source,console]
------------------------------------
-POST /_security/role/slm-read-only
-{
-  "cluster": ["read_slm"],
-  "indices": [
-    {
-      "names": [".slm-history-*"],
-      "privileges": ["read"]
-    }
-  ]
-}
------------------------------------
-// TEST[skip:security is not enabled here]
-
-[float]
-[[slm-gs-create-policy]]
-=== Setting up a repository
+[[slm-gs-register-repository]]
+==== Register a repository
 
 Before we can set up an SLM policy, we'll need to set up a
 snapshot repository where the snapshots will be
@@ -77,7 +31,8 @@ PUT /_snapshot/my_repository
 -----------------------------------
 
 [float]
-=== Setting up a policy
+[[slm-gs-create-policy]]
+==== Create a policy
 
 Now that we have a repository in place, we can create a policy to automatically
 take snapshots. Policies are written in JSON and will define when to take
@@ -132,7 +87,8 @@ request>>, so you can specify, for example, whether the snapshot should fail in
 special cases, such as if one of the specified indices cannot be found.
 
 [float]
-=== Making sure the policy works
+[[slm-gs-test-policy]]
+==== Test the policy
 
 While snapshots taken by SLM policies can be viewed through the standard snapshot
 API, SLM also keeps track of policy successes and failures in ways that are a bit

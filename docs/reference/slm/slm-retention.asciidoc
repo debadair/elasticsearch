@@ -1,7 +1,11 @@
 [role="xpack"]
 [testenv="basic"]
 [[slm-retention]]
-== Snapshot lifecycle management retention
+=== Snapshot lifecycle management retention
+
+++++
+<titleabbrev>Snapshot retention</titleabbrev>
+++++
 
 Automatic deletion of older snapshots is an optional feature of snapshot lifecycle management.
 Retention is run as a cluster level task that is not associated with a particular policy's schedule

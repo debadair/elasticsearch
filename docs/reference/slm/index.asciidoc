@@ -1,10 +1,8 @@
 [role="xpack"]
 [testenv="basic"]
 [[snapshot-lifecycle-management]]
-= Manage the snapshot lifecycle
+== Manage the snapshot lifecycle
 
-[partintro]
---
 You can set up snapshot lifecycle policies to automate the timing, frequency, and retention of snapshots. 
 Snapshot policies can apply to multiple indices. 
 
@@ -33,7 +31,8 @@ such as getting policies and checking the SLM status.
 `cluster:admin/snapshot/*`:: Allows a user to take and delete snapshots of any
 index, whether or not they have access to that index. 
 
-An example of configuring an administrator role for SLM follows:
+For example, the following request configures an `slm-admin` role that grants the privileges
+necessary for administering SLM.
 
 [source,console]
 -----------------------------------
@@ -68,7 +67,6 @@ POST /_security/role/slm-read-only
 -----------------------------------
 // TEST[skip:security is not enabled here]
 
---
 include::getting-started-slm.asciidoc[]
 
 include::slm-retention.asciidoc[]
