@@ -18,7 +18,18 @@ aliases. You use component templates to construct index templates, they aren't d
 set of indices. Index templates can contain a collection of component templates, as well as directly
 specify settings, mappings, and aliases.
 
-If a new data stream or index matches more than one index template, the index template with the highest priority is used.
+[discrete]
+=== Template and settings priority
+
+If a new data stream or index matches more than one index template, 
+the index template with the highest priority value is used.
+
+If an index is created with explicit settings and also matches an index template, 
+the settings from the create index request take precedence over settings specified in the 
+template and its component templates.
+
+When a composable template matches a given index it always takes precedence over a legacy template. 
+If no composable template matches, a <<indices-templates-v1, legacy template>> may still match and be applied.
 
 [IMPORTANT]
 ====
@@ -33,12 +44,8 @@ non-overlapping index pattern, or assign your templates a `priority` higher or
 lower than `100`.
 ====
 
-When a composable template matches a given index
-it always takes precedence over a legacy template. If no composable template matches, a legacy
-template may still match and be applied.
-
-If an index is created with explicit settings and also matches an index template,
-the settings from the create index request take precedence over settings specified in the index template and its component templates.
+[discrete]
+=== Example index template
 
 [source,console]
 --------------------------------------------------
